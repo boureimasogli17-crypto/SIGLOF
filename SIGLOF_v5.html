@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGLOF v5 — Système Intégré de Gestion Logistique</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f4f4f0;display:flex;min-height:100vh;}
+/* SIDEBAR */
+.sidebar{width:200px;background:#0C1F3A;min-height:100vh;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;}
+.sb-logo{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.sb-logo-title{font-size:13px;font-weight:600;color:#fff;}
+.sb-logo-sub{font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px;}
+.sb-nav{flex:1;padding:10px 0;}
+.nav{display:flex;align-items:center;gap:9px;padding:9px 16px;font-size:11px;color:rgba(255,255,255,0.55);cursor:pointer;border-left:2px solid transparent;transition:all 0.15s;}
+.nav:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.85);}
+.nav.active{background:rgba(255,255,255,0.1);color:#fff;border-left-color:#1D9E75;}
+.nav-ico{width:16px;text-align:center;font-size:13px;}
+.sb-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08);}
+.sb-user{display:flex;align-items:center;gap:8px;}
+.sb-avatar{width:26px;height:26px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;}
+.sb-name{font-size:10px;color:rgba(255,255,255,0.6);}
+.sb-role{font-size:9px;color:rgba(255,255,255,0.35);}
+/* MAIN */
+.main{flex:1;min-width:0;}
+.topbar{background:#fff;border-bottom:1px solid #e0e0d8;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.pg-title{font-size:14px;font-weight:500;color:#1a1a1a;}
+.tb-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hb{font-size:10px;padding:3px 8px;border-radius:20px;}
+.hb-g{background:rgba(29,158,117,0.15);color:#0F6E56;border:1px solid rgba(29,158,117,0.3);}
+.hb-v{background:rgba(83,74,183,0.15);color:#3C3489;border:1px solid rgba(83,74,183,0.3);}
+.btn-ia-top{padding:5px 11px;border-radius:8px;font-size:11px;cursor:pointer;background:rgba(29,158,117,0.15);color:#0F6E56;border:1px solid rgba(29,158,117,0.3);}
+.btn-man-top{padding:5px 11px;border-radius:8px;font-size:11px;cursor:pointer;background:none;border:1px solid #ddd;color:#555;}
+.content{padding:14px 18px;}
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;}
+/* CARDS */
+.card{background:#fff;border:1px solid #e0e0d8;border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.chdr{padding:10px 14px;border-bottom:1px solid #e0e0d8;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.chdr h3{font-size:12px;font-weight:500;color:#1a1a1a;}
+/* FILTRES */
+.filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid #e0e0d8;background:#f8f8f5;}
+.fi-lbl{font-size:10px;color:#888;white-space:nowrap;}
+input,select,textarea{padding:6px 9px;border:1px solid #ddd;border-radius:8px;font-size:11px;background:#fff;color:#333;}
+input:focus,select:focus{outline:none;border-color:#185FA5;}
+.btn{padding:6px 11px;background:none;border:1px solid #ddd;border-radius:8px;font-size:11px;cursor:pointer;color:#333;}
+.btn:hover{background:#f8f8f5;}
+.btn-p{padding:6px 13px;background:#0C1F3A;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;}
+.btn-p:hover{background:#185FA5;}
+.btn-print{padding:5px 10px;background:none;border:1px solid #ddd;border-radius:8px;font-size:10px;cursor:pointer;color:#185FA5;}
+.btn-dl{padding:6px 12px;background:#185FA5;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;margin-top:8px;}
+/* BADGES */
+.badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.b-ok{background:#EAF3DE;color:#3B6D11;}.b-warn{background:#FAEEDA;color:#854F0B;}
+.b-dn{background:#FCEBEB;color:#A32D2D;}.b-info{background:#E6F1FB;color:#185FA5;}
+.b-gray{background:#f1efea;color:#5F5E5A;}.b-pur{background:#EEEDFE;color:#3C3489;}
+.b-teal{background:#E1F5EE;color:#0F6E56;}.b-amber{background:#FEF3C7;color:#92400E;}
+/* MÉTRIQUES */
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
+.mc{background:#f8f8f5;border-radius:8px;padding:11px 13px;}
+.mc-lbl{font-size:10px;color:#888;margin-bottom:4px;}
+.mc-val{font-size:19px;font-weight:500;color:#1a1a1a;}
+.mc-sub{font-size:10px;margin-top:2px;}
+.ok{color:#3B6D11;}.warn{color:#854F0B;}.info{color:#185FA5;}.dn{color:#A32D2D;}
+/* TABLEAU */
+table{width:100%;border-collapse:collapse;font-size:11px;}
+thead th{padding:7px 8px;text-align:left;font-weight:500;font-size:10px;color:#888;background:#f8f8f5;border-bottom:1px solid #e0e0d8;white-space:nowrap;}
+tbody tr{border-bottom:1px solid #e0e0d8;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#f8f8f5;}
+tbody td{padding:6px 8px;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
+/* Colonnes contextuelles masquées par défaut */
+.st-col-g10,.st-col-g13,.mvt-col-g13,.mvt-col-g10,.mvt-col-qty{display:none;}
+/* GROUPES NSC */
+.groupes-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;}
+.g-btn{padding:8px 6px;border:1px solid #ddd;border-radius:10px;font-size:10px;font-weight:500;cursor:pointer;background:#fff;color:#555;text-align:center;line-height:1.3;transition:all 0.15s;}
+.g-btn:hover{background:#f8f8f5;border-color:#aaa;}
+.g-btn.active{color:#fff;border-color:transparent;}
+.gi{font-size:15px;margin-bottom:3px;display:block;}
+/* FORM */
+.form-sec{padding:14px 16px;}
+.form-sec h4{font-size:12px;font-weight:500;color:#1a1a1a;margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid #e0e0d8;}
+.fg{margin-bottom:9px;}
+.fg label{display:block;font-size:10px;color:#888;margin-bottom:3px;}
+.fg input,.fg select,.fg textarea{width:100%;}
+.fg-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fg-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.fg-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+.fg-5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;}
+.suc{background:#EAF3DE;border:1px solid #C0DD97;color:#27500A;border-radius:8px;padding:8px 12px;font-size:11px;display:none;margin-top:8px;}
+.import-zone{background:#f8f8f5;border:2px dashed #ccc;border-radius:10px;padding:18px;text-align:center;cursor:pointer;margin-bottom:10px;}
+.import-zone:hover{border-color:#185FA5;background:#E6F1FB;}
+.import-info{background:#E6F1FB;border:1px solid #B5D4F4;border-radius:8px;padding:8px 12px;font-size:11px;color:#0C447C;margin-bottom:10px;}
+/* DOTATIONS */
+.dot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.dot-card{background:#fff;border:1px solid #e0e0d8;border-radius:10px;padding:13px;}
+.dot-card h4{font-size:12px;font-weight:500;margin-bottom:9px;color:#1a1a1a;}
+.dot-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.prog-bar{height:4px;background:#f1efea;border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.prog-fill{height:100%;border-radius:2px;}
+/* RAPPORTS */
+.rap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.rap-card{background:#fff;border:1px solid #e0e0d8;border-radius:10px;padding:13px;}
+.rap-card h4{font-size:12px;font-weight:500;margin-bottom:6px;color:#1a1a1a;}
+.rap-card p{font-size:11px;color:#888;line-height:1.5;}
+/* CHART */
+.chart-wrap{padding:12px 14px;position:relative;height:180px;}
+/* MOUVEMENT TYPE CARDS */
+.mvt-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.mvt-type-card{border:1px solid #ddd;border-radius:10px;padding:11px;cursor:pointer;}
+.mvt-type-card:hover{background:#f8f8f5;}
+.mvt-type-card.selected{border-color:#185FA5;background:#E6F1FB;}
+.mvt-type-card h5{font-size:11px;font-weight:500;margin-bottom:2px;}
+.mvt-type-card p{font-size:10px;color:#888;}
+.mvt-type-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;margin-bottom:6px;}
+/* LOT BAR */
+.lot-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#FAEEDA;border-bottom:1px solid #FAC775;font-size:11px;color:#854F0B;}
+.lot-bar.hidden{display:none;}
+/* CALC BOX */
+.calc-box{background:#f8f8f5;border:1px solid #e0e0d8;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px;}
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
+.modal-overlay.visible{display:flex;}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:820px;overflow:hidden;margin:auto;}
+.modal-hdr{background:#0C1F3A;padding:13px 17px;display:flex;align-items:center;justify-content:space-between;}
+.modal-hdr h2{font-size:13px;font-weight:500;color:#fff;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:17px;cursor:pointer;}
+.modal-body{padding:16px 18px;max-height:72vh;overflow-y:auto;}
+.ms{margin-bottom:16px;}
+.ms h3{font-size:13px;font-weight:500;color:#0C1F3A;margin-bottom:7px;padding-bottom:4px;border-bottom:2px solid #1D9E75;}
+.ms h4{font-size:11px;font-weight:500;color:#185FA5;margin:9px 0 4px;}
+.ms p,.ms li{font-size:11px;color:#444;line-height:1.6;}
+.ms ul{padding-left:15px;margin-bottom:5px;}
+/* IA */
+.ia-panel{position:fixed;bottom:18px;right:18px;width:320px;background:#fff;border-radius:13px;box-shadow:0 8px 32px rgba(0,0,0,0.16);border:1px solid #e0e0d8;z-index:900;display:none;overflow:hidden;}
+.ia-panel.visible{display:block;}
+.ia-hdr{background:#0C1F3A;padding:9px 13px;display:flex;align-items:center;justify-content:space-between;}
+.ia-hdr-l{display:flex;align-items:center;gap:6px;}
+.ia-dot{width:7px;height:7px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.ia-hdr h4{font-size:11px;font-weight:500;color:#fff;}
+.ia-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:15px;cursor:pointer;}
+.ia-msgs{height:180px;overflow-y:auto;padding:9px 11px;display:flex;flex-direction:column;gap:7px;}
+.ia-msg{font-size:11px;line-height:1.5;padding:7px 9px;border-radius:8px;max-width:92%;}
+.ia-msg.bot{background:#f8f8f5;color:#1a1a1a;align-self:flex-start;border-radius:4px 9px 9px 9px;}
+.ia-msg.user{background:#0C1F3A;color:#fff;align-self:flex-end;border-radius:9px 4px 9px 9px;}
+.ia-sugs{padding:0 9px 6px;display:flex;flex-wrap:wrap;gap:4px;}
+.ia-sug{font-size:10px;padding:3px 7px;background:#f1efea;color:#555;border-radius:20px;cursor:pointer;border:1px solid #ddd;}
+.ia-sug:hover{background:#e0e0d8;}
+.ia-inp-row{border-top:1px solid #e0e0d8;padding:7px 9px;display:flex;gap:5px;}
+.ia-inp{flex:1;border:1px solid #ddd;border-radius:7px;padding:5px 8px;font-size:11px;resize:none;}
+.ia-send{padding:5px 11px;background:#1D9E75;color:#fff;border:none;border-radius:7px;font-size:11px;cursor:pointer;}
+/* AJOUT FORM */
+.add-form-container{display:none;}
+.add-form-container.visible{display:block;}
+/* MVT FORM EXTRA */
+#mvt-form-extra{margin-bottom:10px;}
+/* ALERTE G13 classe */
+.cl-badge-info{background:#E6F1FB;border:1px solid #B5D4F4;color:#0C447C;border-radius:8px;padding:6px 10px;font-size:10px;margin-bottom:10px;display:none;}
+.cl-badge-info.visible{display:block;}
+</style>
+</head>
+<body>
+
+<!-- MODAL MANUEL -->
+<div class="modal-overlay" id="modal-manuel">
+  <div class="modal">
+    <div class="modal-hdr"><h2>📖 Manuel SIGLOF v5</h2><button class="modal-close" onclick="toggleManuel()">✕</button></div>
+    <div class="modal-body">
+      <div class="ms"><h3>Tableau de bord</h3><p>Filtrage actif sur la période, le groupe NSC, l'unité et le statut. Les indicateurs (disponibilité, ruptures, alertes, mouvements) se recalculent à chaque changement de filtre.</p></div>
+      <div class="ms"><h3>Gestion des stocks — G10 Armes</h3><p>Filtres : Classe NSC, Unité, Statut, Type, Modèle, Calibre. Colonnes Type / Sous-type / Modèle / Calibre s'affichent uniquement quand G10 est sélectionné.</p></div>
+      <div class="ms"><h3>Gestion des stocks — G13 Munitions</h3><p>Filtres exhaustifs : Classe, Calibre, Type de balle, Type de caisse, Origine. Colonnes : Type, Calibre, Type balle, Type caisse, Origine, Nb caisses, Boîtes/caisse, Cart./boîte, Total/caisse, Total cartouches.</p></div>
+      <div class="ms"><h3>Mouvements — G10 Armes</h3><p>Le formulaire affiche les champs Classe NSC, Code Suivi/NS-BF, Désignation, Type, Sous-Type, Modèle, Calibre avec listes dynamiques selon la classe. Le champ Quantité est supprimé — la traçabilité se fait par Code Suivi individuel.</p></div>
+      <div class="ms"><h3>Mouvements — G13 Munitions</h3><p>Le formulaire de mouvement est identique au formulaire d'enregistrement SSAM-BF : Classe NSC en premier, formulaire reconfigurable selon la classe (format standard, obus, mines, bombes, vrac, missiles, détonateurs).</p></div>
+      <div class="ms"><h3>Dotations unités</h3><p>Filtrage par groupe NSC et unité. Taux de dotation par catégorie (Armement, Protection, Véhicules, Vivres, Médical, Carburants).</p></div>
+      <div class="ms"><h3>Rapports</h3><p>Génération de rapports PDF : inventaire mensuel, dotations, mouvements, alertes de stock, rapports ministériels.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT IA -->
+<div class="ia-panel" id="ia-panel">
+  <div class="ia-hdr">
+    <div class="ia-hdr-l"><div class="ia-dot"></div><h4>Assistant SIGLOF</h4></div>
+    <button class="ia-close" onclick="toggleIA()">✕</button>
+  </div>
+  <div class="ia-msgs" id="ia-msgs">
+    <div class="ia-msg bot">Bonjour. Je suis l'assistant SIGLOF v5. Comment puis-je vous aider ?</div>
+  </div>
+  <div class="ia-sugs">
+    <span class="ia-sug" onclick="askIA('Comment enregistrer un mouvement G10 ?')">Mouvement G10</span>
+    <span class="ia-sug" onclick="askIA('Comment filtrer les stocks G13 par calibre ?')">Stocks G13</span>
+    <span class="ia-sug" onclick="askIA('Comment lire le tableau de bord ?')">Tableau de bord</span>
+  </div>
+  <div class="ia-inp-row">
+    <textarea class="ia-inp" id="ia-inp" placeholder="Poser une question..." rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendIA();}"></textarea>
+    <button class="ia-send" onclick="sendIA()">▶</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-title">SIGLOF v5</div>
+    <div class="sb-logo-sub">Gestion Logistique · FAB</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav active" id="nav-tb" onclick="pg('tb',this)"><span class="nav-ico">📊</span>Tableau de bord</div>
+    <div class="nav" id="nav-stocks" onclick="pg('stocks',this)"><span class="nav-ico">📦</span>Gestion des stocks</div>
+    <div class="nav" id="nav-mvt" onclick="pg('mvt',this)"><span class="nav-ico">↔</span>Mouvements</div>
+    <div class="nav" id="nav-dot" onclick="pg('dot',this)"><span class="nav-ico">🎯</span>Dotations unités</div>
+    <div class="nav" id="nav-rap" onclick="pg('rap',this)"><span class="nav-ico">📄</span>Rapports</div>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">SB</div>
+      <div><div class="sb-name">Boureima S.</div><div class="sb-role">Admin · DELOTE SARL</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="pg-title" id="pg-title">Tableau de bord</div>
+    <div class="tb-right">
+      <button class="btn-man-top" onclick="toggleManuel()">📖 Manuel</button>
+      <button class="btn-ia-top" onclick="toggleIA()">🤖 Assistant IA</button>
+      <span class="hb hb-g">Confidentiel Défense</span>
+      <span class="hb hb-v">v5.0</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== TABLEAU DE BORD ===== -->
+    <div class="page active" id="page-tb">
+      <div class="card" style="margin-bottom:12px;">
+        <div class="chdr"><h3>Filtres tableau de bord</h3><button class="btn" onclick="resetTB()">Réinitialiser</button></div>
+        <div class="filter-bar">
+          <span class="fi-lbl">Période :</span>
+          <input type="date" id="tb-d1" value="2026-04-01" onchange="renderTB()">
+          <span style="font-size:11px;color:#888;">au</span>
+          <input type="date" id="tb-d2" value="2026-04-20" onchange="renderTB()">
+          <select id="tb-grp" onchange="renderTB()">
+            <option value="">Tous groupes NSC</option>
+            <option value="10">G10 — Armes</option><option value="13">G13 — Munitions</option>
+            <option value="23">G23 — Véhicules</option><option value="84">G84 — Équipement</option>
+            <option value="89">G89 — Vivres</option><option value="65">G65 — Médical</option>
+            <option value="91">G91 — Carburants</option><option value="58">G58 — Comm.</option>
+          </select>
+          <select id="tb-unit" onchange="renderTB()">
+            <option value="">Toutes unités</option>
+            <option>3e Bataillon</option><option>VDP Kaya</option><option>Sector Sahel</option>
+            <option>GFS</option><option>CMA</option><option>Dépôt central</option>
+          </select>
+          <select id="tb-statut" onchange="renderTB()">
+            <option value="">Tous statuts</option>
+            <option value="ok">Normal</option><option value="warn">Faible</option><option value="danger">Critique</option>
+          </select>
+          <button class="btn-p" onclick="renderTB()">Appliquer</button>
+        </div>
+      </div>
+
+      <div class="metrics" id="tb-metrics">
+        <div class="mc"><div class="mc-lbl">Total articles</div><div class="mc-val" id="tb-total">4 624</div><div class="mc-sub info">Inventaire national</div></div>
+        <div class="mc"><div class="mc-lbl">Ruptures critiques</div><div class="mc-val dn" id="tb-rupt">12</div><div class="mc-sub dn">Action requise</div></div>
+        <div class="mc"><div class="mc-lbl">Stock faible</div><div class="mc-val warn" id="tb-faible">28</div><div class="mc-sub warn">Sous le seuil</div></div>
+        <div class="mc"><div class="mc-lbl">Mouvements (période)</div><div class="mc-val" id="tb-mvt-cnt">8</div><div class="mc-sub ok">Validés</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="card">
+          <div class="chdr"><h3>Disponibilité par groupe NSC — <span id="tb-chart-lbl" style="font-weight:400;color:#888;">Tous groupes</span></h3></div>
+          <div class="chart-wrap"><canvas id="dispChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="chdr"><h3>Alertes actives</h3></div>
+          <div style="padding:10px 14px;" id="tb-alertes"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="chdr"><h3>Derniers mouvements</h3><button class="btn" onclick="pg('mvt',document.getElementById('nav-mvt'))">Voir tous</button></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Réf.</th><th>Date</th><th>Groupe</th><th>Type</th><th>Désignation</th><th>Unité origine</th><th>Unité dest.</th><th>Statut</th></tr></thead>
+            <tbody id="tb-mvt-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STOCKS ===== -->
+    <div class="page" id="page-stocks">
+      <div style="font-size:11px;color:#888;margin-bottom:8px;">Sélectionner le groupe NSC :</div>
+      <div class="groupes-grid" id="stocks-grp-grid"></div>
+      <div class="metrics">
+        <div class="mc"><div class="mc-lbl">Articles — <span id="st-grp-lbl">tous groupes</span></div><div class="mc-val" id="st-total">4 624</div><div class="mc-sub info">Inventaire national</div></div>
+        <div class="mc"><div class="mc-lbl">Ruptures critiques</div><div class="mc-val" style="color:#A32D2D;" id="st-rupt">12</div><div class="mc-sub dn">Action requise</div></div>
+        <div class="mc"><div class="mc-lbl">Stock faible</div><div class="mc-val" id="st-faible">28</div><div class="mc-sub warn">Sous le seuil</div></div>
+        <div class="mc"><div class="mc-lbl">Articles normaux</div><div class="mc-val" id="st-norm">4 584</div><div class="mc-sub ok">Conformes</div></div>
+      </div>
+
+      <div class="card">
+        <div class="chdr">
+          <h3>Inventaire — <span id="st-cnt">—</span> articles</h3>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-p" onclick="showAddForm()">+ Nouvel article</button>
+            <button class="btn-print">Imprimer inventaire</button>
+          </div>
+        </div>
+        <div class="filter-bar" id="st-filter-bar">
+          <span class="fi-lbl">Filtres :</span>
+          <input type="text" id="st-search" placeholder="Désignation, code NSN..." style="width:120px;" oninput="filterStocks()">
+          <select id="st-classe" onchange="filterStocks()"><option value="">Toutes classes</option></select>
+          <select id="st-unite" onchange="filterStocks()">
+            <option value="">Toutes unités</option>
+            <option>Dépôt central</option><option>3e Bataillon</option><option>VDP Kaya</option>
+            <option>Sector Sahel</option><option>GFS</option>
+          </select>
+          <select id="st-statut" onchange="filterStocks()">
+            <option value="">Tous statuts</option><option value="ok">Normal</option>
+            <option value="warn">Faible</option><option value="danger">Critique</option>
+          </select>
+          <!-- Filtres G10 -->
+          <select id="st-type-g10" onchange="filterStocks()" style="display:none;"><option value="">Tous types</option></select>
+          <select id="st-modele-g10" onchange="filterStocks()" style="display:none;"><option value="">Tous modèles</option></select>
+          <select id="st-calibre-g10" onchange="filterStocks()" style="display:none;"><option value="">Tous calibres</option></select>
+          <!-- Filtres G13 -->
+          <select id="st-calibre-g13" onchange="filterStocks()" style="display:none;"><option value="">Tous calibres</option></select>
+          <select id="st-typeballe-g13" onchange="filterStocks()" style="display:none;"><option value="">Type de balle</option></select>
+          <select id="st-typecaisse-g13" onchange="filterStocks()" style="display:none;"><option value="">Type de caisse</option></select>
+          <select id="st-origine-g13" onchange="filterStocks()" style="display:none;"><option value="">Toutes origines</option></select>
+          <button class="btn-p" onclick="filterStocks()">Filtrer</button>
+          <button class="btn" onclick="resetStocks()">Réinitialiser</button>
+        </div>
+        <div class="lot-bar hidden" id="st-lot-bar">
+          <span id="st-lot-lbl">0 article(s) sélectionné(s)</span>
+          <button class="btn" style="background:#E6F1FB;color:#185FA5;border-color:#B5D4F4;" onclick="alert('Transfert en lot.')">Transférer</button>
+          <button class="btn" style="background:#FAEEDA;color:#854F0B;border-color:#FAC775;" onclick="alert('Mise en maintenance.')">Maintenance</button>
+          <button class="btn-print">Imprimer fiches</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr id="st-thead-row"></tr></thead>
+            <tbody id="st-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Formulaire ajout article -->
+      <div class="card add-form-container" id="add-form">
+        <div class="chdr"><h3>Nouvel article</h3><button class="btn" onclick="showAddForm()">Fermer</button></div>
+        <div class="form-sec">
+          <div class="fg-4">
+            <div class="fg"><label>Groupe NSC</label><select id="add-grp" onchange="updateAddClasses()">
+              <option value="10">G10 — Armes</option><option value="13">G13 — Munitions</option>
+              <option value="23">G23 — Véhicules</option><option value="84">G84 — Équipement</option>
+              <option value="89">G89 — Vivres</option><option value="65">G65 — Médical</option>
+              <option value="91">G91 — Carburants</option><option value="58">G58 — Comm.</option>
+            </select></div>
+            <div class="fg"><label>Classe NSC</label><select id="add-classe"></select></div>
+            <div class="fg"><label>Code NSN</label><input type="text" id="add-nsn" placeholder="Ex : 10-1010-BF099"></div>
+            <div class="fg"><label>Désignation</label><input type="text" id="add-desig" placeholder="Ex : Fusil AK-103"></div>
+          </div>
+          <div class="fg-4">
+            <div class="fg"><label>Quantité disponible</label><input type="number" id="add-qty" placeholder="Ex : 50"></div>
+            <div class="fg"><label>Seuil d'alerte</label><input type="number" id="add-seuil" placeholder="Ex : 20"></div>
+            <div class="fg"><label>Emplacement</label><input type="text" id="add-loc" placeholder="Ex : Magasin A-01"></div>
+            <div class="fg"><label>Unité détentrice</label><select id="add-unite">
+              <option>Dépôt central</option><option>3e Bataillon</option><option>VDP Kaya</option>
+              <option>Sector Sahel</option><option>GFS</option>
+            </select></div>
+          </div>
+          <div style="display:flex;gap:8px;"><button class="btn-p" onclick="ajouterArticle()">Enregistrer</button><button class="btn" onclick="showAddForm()">Annuler</button></div>
+          <div class="suc" id="suc-add"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MOUVEMENTS ===== -->
+    <div class="page" id="page-mvt">
+      <div style="font-size:11px;color:#888;margin-bottom:8px;">Sélectionner le groupe NSC du mouvement :</div>
+      <div class="groupes-grid" id="mvt-grp-grid"></div>
+
+      <!-- Import CSV mouvements -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button class="btn" style="background:#E1F5EE;color:#0F6E56;border-color:#9FE1CB;" onclick="toggleMvtImport()">⬆ Import Excel / CSV — Mouvements en masse</button>
+      </div>
+      <div id="mvt-import-zone" style="display:none;" class="card">
+        <div class="chdr"><h3>Import mouvements — <span id="mvt-imp-grp-lbl">G10 — Armes</span></h3><button class="btn" onclick="toggleMvtImport()">Fermer</button></div>
+        <div class="form-sec">
+          <div class="import-zone" onclick="simulerMvtImport()">
+            <div style="font-size:19px;color:#ccc;margin-bottom:5px;">⬆</div>
+            <div style="font-size:12px;font-weight:500;margin-bottom:3px;">Cliquer pour sélectionner un fichier</div>
+            <div style="font-size:11px;color:#888;">.xlsx, .xls, .csv — Colonnes selon le groupe</div>
+          </div>
+          <div id="mvt-imp-preview" style="display:none;margin-bottom:10px;">
+            <div class="card"><div class="chdr"><h3>Aperçu — 8 mouvements</h3><div style="display:flex;gap:5px;"><span class="badge b-ok">7 valides</span><span class="badge b-warn">1 à corriger</span></div></div>
+            <table><thead><tr><th>Article</th><th>Type</th><th>Origine</th><th>Destination</th><th>Statut</th></tr></thead>
+            <tbody id="mvt-imp-tbody"></tbody></table></div>
+          </div>
+          <div class="fg-2">
+            <div class="fg"><label>Réf. document commun</label><input type="text" id="mvt-imp-doc" placeholder="Ex : BL-2026-0142"></div>
+            <div class="fg"><label>Type de mouvement</label><select><option>Entrée</option><option>Sortie</option><option>Transfert</option></select></div>
+          </div>
+          <div class="import-info">Chaque ligne génère un bon de mouvement individuel avec la même référence document.</div>
+          <div style="display:flex;gap:8px;"><button class="btn-p" onclick="validerMvtImport()">Valider et importer</button><button class="btn" onclick="toggleMvtImport()">Annuler</button></div>
+          <div class="suc" id="mvt-imp-suc"></div>
+        </div>
+      </div>
+
+      <!-- Types de mouvement -->
+      <div class="mvt-type-grid" id="mvt-type-cards">
+        <div class="mvt-type-card" id="tc-e" onclick="selMvtType('Entrée',this)">
+          <div class="mvt-type-icon" style="background:#EAF3DE;">⬇</div>
+          <h5>Entrée en stock</h5><p>Réception, livraison, retour, don</p>
+        </div>
+        <div class="mvt-type-card" id="tc-s" onclick="selMvtType('Sortie',this)">
+          <div class="mvt-type-icon" style="background:#FCEBEB;">⬆</div>
+          <h5>Sortie de stock</h5><p>Attribution, consommation, perte</p>
+        </div>
+        <div class="mvt-type-card" id="tc-t" onclick="selMvtType('Transfert',this)">
+          <div class="mvt-type-icon" style="background:#E6F1FB;">↔</div>
+          <h5>Transfert inter-unités</h5><p>Déplacement entre dépôts</p>
+        </div>
+      </div>
+
+      <!-- Formulaire mouvement -->
+      <div class="card">
+        <div class="chdr">
+          <h3>Formulaire — <span id="mvt-grp-lbl">Sélectionner un groupe et un type ci-dessus</span></h3>
+          <span class="badge b-pur" id="mvt-type-badge" style="display:none;"></span>
+        </div>
+        <div class="form-sec">
+          <!-- Champs spécifiques au groupe (injectés dynamiquement) -->
+          <div id="mvt-form-extra"></div>
+
+          <!-- Champs communs -->
+          <div class="fg-3">
+            <div class="fg"><label>Unité / Dépôt origine</label>
+              <select id="mvt-orig"><option>Dépôt central</option><option>3e Bataillon</option><option>VDP Kaya</option><option>Sector Sahel</option><option>GFS</option><option>CMA</option><option>Fournisseur ext.</option></select>
+            </div>
+            <div class="fg"><label>Unité / Dépôt destination</label>
+              <select id="mvt-dest"><option>3e Bataillon</option><option>Dépôt central</option><option>VDP Kaya</option><option>Sector Sahel</option><option>GFS</option><option>CMA</option></select>
+            </div>
+            <div class="fg"><label>Réf. document (BL, PV…)</label>
+              <input type="text" id="mvt-doc" placeholder="Ex : BL-2026-0142">
+            </div>
+          </div>
+          <div class="fg-2">
+            <div class="fg"><label>Responsable mouvement (grade + nom)</label>
+              <input type="text" id="mvt-resp" placeholder="Ex : Adj Traoré K.">
+            </div>
+            <div class="fg"><label>Observations</label>
+              <input type="text" id="mvt-obs" placeholder="Remarques éventuelles">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-p" onclick="submitMvt()">Enregistrer le mouvement</button>
+            <button class="btn" onclick="resetMvt()">Annuler</button>
+            <button class="btn-print">Imprimer bon</button>
+          </div>
+          <div class="suc" id="mvt-suc"></div>
+        </div>
+      </div>
+
+      <!-- Historique mouvements -->
+      <div class="card">
+        <div class="chdr">
+          <h3>Historique — <span id="mvt-hist-cnt">8</span> mouvements</h3>
+          <div style="display:flex;gap:6px;">
+            <button class="btn" onclick="alert('Export Excel — version déployée.')" style="font-size:10px;">Exporter</button>
+            <button class="btn-print" onclick="imprimerSelMvt()">Imprimer sélection</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <span class="fi-lbl">Filtres :</span>
+          <select id="mvt-f-grp" onchange="filterMvtHist()">
+            <option value="">Tous groupes</option><option value="10">G10</option><option value="13">G13</option>
+            <option value="23">G23</option><option value="84">G84</option><option value="89">G89</option>
+            <option value="65">G65</option><option value="91">G91</option><option value="58">G58</option>
+          </select>
+          <select id="mvt-f-type" onchange="filterMvtHist()">
+            <option value="">Tous types</option><option>Entrée</option><option>Sortie</option><option>Transfert</option>
+          </select>
+          <select id="mvt-f-unit" onchange="filterMvtHist()">
+            <option value="">Toutes unités</option><option>Dépôt central</option><option>3e Bataillon</option>
+            <option>VDP Kaya</option><option>Sector Sahel</option><option>GFS</option>
+          </select>
+          <select id="mvt-f-st" onchange="filterMvtHist()">
+            <option value="">Tous statuts</option><option>Validé</option><option>En cours</option><option>En attente</option>
+          </select>
+          <button class="btn-p" onclick="filterMvtHist()">Filtrer</button>
+          <button class="btn" onclick="resetMvtHist()">Réinitialiser</button>
+        </div>
+        <div class="lot-bar hidden" id="mvt-lot-bar">
+          <span id="mvt-lot-lbl">0 sélectionné(s)</span>
+          <button class="btn" style="background:#EAF3DE;color:#3B6D11;border-color:#C0DD97;" onclick="alert('Validation en lot.')">Valider</button>
+          <button class="btn-print" onclick="imprimerSelMvt()">Imprimer bons</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr id="mvt-hist-thead">
+              <th style="width:32px;"><input type="checkbox" id="mvt-chk-all" onchange="toggleAllMvt(this)"></th>
+              <th>Référence</th><th>Date</th><th>Grp.</th><th>Type mvt</th>
+              <th>Désignation</th>
+              <!-- Colonnes G10 -->
+              <th class="mvt-col-g10">Code Suivi</th>
+              <th class="mvt-col-g10">Classe</th>
+              <th class="mvt-col-g10">Modèle</th>
+              <th class="mvt-col-g10">Calibre</th>
+              <!-- Colonne quantité commune -->
+              <th class="mvt-col-qty">Quantité</th>
+              <!-- Colonnes G13 -->
+              <th class="mvt-col-g13">Calibre</th>
+              <th class="mvt-col-g13">Type balle</th>
+              <th class="mvt-col-g13">Type caisse</th>
+              <th class="mvt-col-g13">Origine</th>
+              <th class="mvt-col-g13">Caisses</th>
+              <th class="mvt-col-g13">B./C.</th>
+              <th class="mvt-col-g13">C./B.</th>
+              <th class="mvt-col-g13">Tot./C.</th>
+              <th class="mvt-col-g13">Tot. cart.</th>
+              <th>Unité origine</th><th>Unité dest.</th><th>Statut</th>
+            </tr></thead>
+            <tbody id="mvt-hist-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DOTATIONS ===== -->
+    <div class="page" id="page-dot">
+      <div class="card" style="margin-bottom:12px;">
+        <div class="chdr">
+          <h3>Filtres dotations</h3>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-p" onclick="afficherApercuDot()">Aperçu sélection</button>
+            <button class="btn-print">Imprimer état</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <span class="fi-lbl">Filtres :</span>
+          <input type="date" id="d-d1" value="2026-01-01" onchange="renderDot()">
+          <span style="font-size:11px;color:#888;">au</span>
+          <input type="date" id="d-d2" value="2026-04-20" onchange="renderDot()">
+          <select id="d-grp" onchange="renderDot()">
+            <option value="">Tous groupes NSC</option>
+            <option value="10">G10 — Armes</option><option value="13">G13 — Munitions</option>
+            <option value="23">G23 — Véhicules</option><option value="84">G84 — Équipement</option>
+            <option value="89">G89 — Vivres</option><option value="65">G65 — Médical</option>
+            <option value="91">G91 — Carburants</option>
+          </select>
+          <select id="d-unit" onchange="renderDot()">
+            <option value="">Toutes unités</option>
+            <option>3e Bataillon</option><option>VDP Kaya</option><option>Sector Sahel</option>
+            <option>GFS</option><option>CMA</option>
+          </select>
+          <select id="d-taux" onchange="renderDot()">
+            <option value="">Tous taux</option><option value="ok">Dotation satisfaisante (≥80%)</option>
+            <option value="warn">Dotation partielle (60-79%)</option><option value="dn">Dotation insuffisante (&lt;60%)</option>
+          </select>
+          <button class="btn-p" onclick="renderDot()">Appliquer</button>
+          <button class="btn" onclick="resetDot()">Réinitialiser</button>
+        </div>
+      </div>
+      <div class="dot-grid" id="dot-cards"></div>
+    </div>
+
+    <!-- ===== RAPPORTS ===== -->
+    <div class="page" id="page-rap">
+      <div class="card" style="margin-bottom:12px;">
+        <div class="chdr"><h3>Filtres communs aux rapports</h3></div>
+        <div class="filter-bar">
+          <span class="fi-lbl">Période :</span>
+          <input type="date" id="r-d1" value="2026-01-01">
+          <span style="font-size:11px;color:#888;">au</span>
+          <input type="date" id="r-d2" value="2026-04-20">
+          <select id="r-grp">
+            <option value="">Tous groupes NSC</option>
+            <option value="10">G10 — Armes</option><option value="13">G13 — Munitions</option>
+            <option value="23">G23 — Véhicules</option><option value="84">G84 — Équipement</option>
+            <option value="89">G89 — Vivres</option><option value="65">G65 — Médical</option>
+            <option value="91">G91 — Carburants</option><option value="58">G58 — Comm.</option>
+          </select>
+          <select id="r-unit">
+            <option value="">Toutes unités</option><option>3e Bataillon</option>
+            <option>VDP Kaya</option><option>Sector Sahel</option><option>GFS</option>
+          </select>
+        </div>
+      </div>
+      <div class="rap-grid">
+        <div class="rap-card"><h4>Inventaire mensuel</h4><p>Bilan complet du stock au 30 avril 2026 — tous groupes NSC</p><button class="btn-dl" onclick="fakeRap(this,'Inventaire_Avril2026.pdf')">Générer PDF</button></div>
+        <div class="rap-card"><h4>État des dotations par unité</h4><p>Comparaison dotation théorique / effective par unité et par groupe</p><button class="btn-dl" onclick="fakeRap(this,'Dotations_Avril2026.pdf')">Générer PDF</button></div>
+        <div class="rap-card"><h4>Rapport des mouvements</h4><p>Entrées, sorties et transferts sur la période sélectionnée</p><button class="btn-dl" onclick="fakeRap(this,'Mouvements_Avril2026.pdf')">Générer PDF</button></div>
+        <div class="rap-card"><h4>Alertes de stock</h4><p>Articles en rupture ou sous le seuil — avec recommandations de réapprovisionnement</p><button class="btn-dl" onclick="fakeRap(this,'Alertes_Avril2026.pdf')">Générer PDF</button></div>
+        <div class="rap-card"><h4>Rapport ministériel</h4><p>Synthèse exécutive pour le Ministère de la Défense — format officiel</p><button class="btn-dl" onclick="fakeRap(this,'Rapport_Ministeriel_Avril2026.pdf')">Générer PDF</button></div>
+        <div class="rap-card"><h4>État du parc véhicules</h4><p>Disponibilité, maintenance et kilométrage — Groupe 23</p><button class="btn-dl" onclick="fakeRap(this,'Vehicules_Avril2026.pdf')">Générer PDF</button></div>
+      </div>
+    </div>
+
+  </div><!-- fin content -->
+</div><!-- fin main -->
+
+<script>
+/* =================================================================
+   CONFIG GROUPES NSC
+   ================================================================= */
+const grpCfg = {
+  '10':{lbl:'G10 — Armes',ico:'🔫',color:'#0C1F3A',
+    classes:{'1005':'Pistolets','1010':'Fusils','1015':'Mitrailleuses','1020':'Canons auto.','1025':'Mortiers','1030':'Antichar RPG','1040':'Grenades','1055':'Lance-gren.','1090':'Armes spéc.'},
+  },
+  '13':{lbl:'G13 — Munitions',ico:'💣',color:'#A32D2D',
+    classes:{'1305':'Petit calibre','1310':'Mortier','1315':'Canon 20mm+','1320':'Roquettes','1325':'Grenades','1330':'Mines','1336':'Bombes','1340':'Missiles','1345':'Explosifs','1370':'Fumigènes','1375':'Détonateurs','1376':'Explosifs vrac'},
+  },
+  '23':{lbl:'G23 — Véhicules',ico:'🚗',color:'#185FA5',classes:{'2310':'Véhicules légers','2320':'Camions lourds','2330':'Remorques','2350':'Blindés'}},
+  '89':{lbl:'G89 — Vivres',ico:'🥫',color:'#3B6D11',classes:{'8905':'Rations indiv.','8910':'Rations coll.','8920':'Conserves'}},
+  '84':{lbl:'G84 — Équipement',ico:'🪖',color:'#854F0B',classes:{'8405':'Uniformes','8415':'Protection','8430':'Chaussures','8470':'Armure balist.'}},
+  '65':{lbl:'G65 — Médical',ico:'🏥',color:'#0F6E56',classes:{'6505':'Médicaments','6510':'Pansements','6545':'Kits secours'}},
+  '91':{lbl:'G91 — Carburants',ico:'⛽',color:'#533206',classes:{'9110':'Diesel F-54','9130':'Aviation JP-8','9150':'Huiles'}},
+  '58':{lbl:'G58 — Comm.',ico:'📻',color:'#3C3489',classes:{'5820':'Radios','5830':'Intercom','5840':'Radar'}},
+};
+
+const pgTitles = {
+  tb:'Tableau de bord',stocks:'Gestion des stocks',mvt:'Mouvements',dot:'Dotations unités',rap:'Rapports',
+};
+
+/* =================================================================
+   LISTES G10 PAR CLASSE (CORRECTION_5 complètes)
+   ================================================================= */
+const G10_DATA = {
+  '1005':{desig:['Pistolet','Revolver'],type:['Semi-automatique','À barillet'],soustype:['Service','Combat','Compact','Officiers','Élite','Polyvalent'],modele:['PM Makarov','Glock 17 Gen 5','Beretta M9A3','TT-33 Tokarev','CZ-75 SP-01','SIG Sauer P226','M2 Browning','CZ-82','Walther P99','Smith & Wesson M19','Ruger GP100','Nagant M1895','HK USP'],calibre:['9x18 mm','9x19 mm Parabellum','7,62x25 mm','.357 Magnum','7,62x38R mm']},
+  '1010':{desig:["Fusil d'assaut","Fusil de précision","Carabine","Fusil de bataille"],type:['Automatique','Semi-automatique','Manuel (bolt)'],soustype:['Standard','Léger','Sniper','Longue portée','Compact','Officiers','Moderne','DMR'],modele:['AK-103','AKM','AK-74','SVD Dragunov','Beretta ARX160','M24','AK-104','SKS','AK-12','FAMAS F1','SVCh SVU'],calibre:['7,62x39 mm','7,62x54R mm','5,56x45 mm','7,62x51 mm']},
+  '1015':{desig:['Fusil-mitrailleur','Mitrailleuse légère'],type:['Automatique','Semi-automatique'],soustype:['Section','Léger','Compact'],modele:['PKM (PK)','RPD','RPK-74','FN Minimi M249','RPK','PKP Pecheneg','Negev NG7','RPK-74M','UKM-2000'],calibre:['7,62x54R mm','7,62x39 mm','5,45x39 mm','5,56x45 mm']},
+  '1020':{desig:['Canon antiaérien','Canon naval','Canon aviation'],type:['Canon AA','Canon Bushmaster','Automatique'],soustype:['Tracté','Véhicule','Mer','Hélico','Mobile'],modele:['ZU-23-2','2A42','Oerlikon 20F2','M621','ZU-23-4','M242'],calibre:['23x152 mm','30x165 mm','20x139 mm','20x102 mm','25x137 mm']},
+  '1025':{desig:['Mortier léger','Mortier moyen','Mortier portable'],type:['Lisse','Non lisse'],soustype:['Section','Bataillon','Infanterie','Artillerie','Commando'],modele:['MO-120 RT F1','82-PM-37','L16','M224','2B11','M6'],calibre:['120 mm','82 mm','81 mm','60 mm']},
+  '1030':{desig:['Lance-roquettes','Missile antichar'],type:['Jetable','Réutilisable','Guidé'],soustype:['Antichar','Portatif','Tandem'],modele:['RPG-7','RPG-27','AT-4','RPG-22','Milan','RPG-30'],calibre:['PG-7V (85 mm)','PG-7VR (105 mm)','84 mm','72 mm','115 mm','105 mm']},
+  '1040':{desig:['Grenade offensive','Grenade défensive','Grenade fumigène','Grenade incendiaire','Grenade désencerclement'],type:['Fragmentation','Souffle','Chimique','Thermite','Caoutchouc'],soustype:['Standard','US','Russe','Signal','Sabotage','Gendarmerie'],modele:['F1','M67','RGD-5','AN-M8','M14','BAM'],calibre:['60 mm','56 mm','55 mm','54 mm']},
+  '1055':{desig:['Lance-grenades','Sous-canon','Indépendant'],type:['Épaule','Sous-canon'],soustype:['AK','M16','Russe','OTAN','Antichar'],modele:['GP-25','M203','GP-34','M320','RPG-18'],calibre:['40 mm','64 mm']},
+  '1090':{desig:['Pistolet silencieux','Arme non-létale','Arme laser','Arme énergétique'],type:['Spéciale','Électrique','Dazzler','Pulsée'],soustype:['CQB','Sniper','Contrôle','Éblouissement','Non-létale'],modele:['PB','VSS Vintorez','Taser X26','Dazzler GLARE','Active Denial'],calibre:['9x18 mm','9x39 mm','Cartouches','Infrarouge','Micro-ondes']},
+};
+
+/* =================================================================
+   LISTES G13 PAR CLASSE
+   ================================================================= */
+const G13_DATA = {
+  '1305':{label:'Munitions de petit calibre',desig:['BO - Balle Ordinaire','BT - Balle Traçante','BP - Perforante','Blanc','Inerte','AP Tungstène','API (Incendiaire)','BTI (Traçante incendiaire)','M855','M856','M995','7N6','7N10','JHP','+P+'],typeballe:['BO — Balle Ordinaire','BT — Balle Traçante','BP — Perforante','Blanc (exercice)','Inerte','API — Incendiaire perforante','BTI — Traçante incendiaire','FMJ','JHP','+P+ Haute pression'],calibre:['7,62x39 mm','7,62x54R mm','7,62x51 mm','5,56x45 mm','9x19 mm Parabellum','5,45x39 mm','12,7x108 mm','5,8x42 mm','5,7x28 mm','4,6x30 mm','12,7x99 mm'],armes:['AK-103','AKM','AK-74','FAMAS F1','M4A1','M16','Beretta M9','Glock 17','SIG P226','HK USP','PKM (PK)','SVD Dragunov','DShK','Kord','M2 Browning'],typecaisse:['Caisse bois réglementaire','Caisse métal étanche','Carton renforcé'],mode:'standard'},
+  '1310':{label:'Munitions de mortier',desig:['M720 HE','M721 Illum','M767 Fumé','L16 HE','M375 WP','OE F1 PAD','M821A2','M853A1'],typeballe:['Explosif (HE)','Éclairant','Fumigène','Phosphore blanc (WP)','HE PD','Pratique (Entraînement)','HE RA'],calibre:['60 mm','81 mm','120 mm'],armes:['Mortier 60mm M224','Mortier 81mm L16','Mortier 82mm PM-37','Mortier 120mm MO-120'],typecaisse:['Caisse bois réglementaire','Caisse métal étanche'],mode:'obus'},
+  '1315':{label:'Munitions de canons (20mm+)',desig:['M56A3 HEI','TP (Target Practice)','M791 APDS-T','M792 HEI-T','M789 HEDP','M830 HEAT-MP-T','M829 APFSDS','Oerlikon AHEAD','3P'],typeballe:['HEI (Explosif Incendiaire)','Entraînement','APDS-T','HEDP','HEAT','APFSDS (Flèche)','AHEAD','HE/PD/VT'],calibre:['20x139 mm','25x137 mm','30x113 mm','30x173 mm','20x102 mm','35x228 mm','40x365 mm','57 mm','76 mm'],armes:['ZU-23-2','2A42','Oerlikon 20F2','M242 Bushmaster','ZU-23-4','Bofors L70'],typecaisse:['Caisse métal étanche','Caisse bois renforcée'],mode:'obus'},
+  '1320':{label:'Roquettes',desig:['PG-7 Charge creuse','OG-7 Fragmentation','TBG-7V Thermobarique','PG-7VR Tandem'],typeballe:['HEAT — Antichar','HE — Fragmentation','Thermobarique','Tandem HEAT'],calibre:['PG-7 / 85mm','OG-7 / 40mm','TBG-7 / 105mm','PG-7VR / 105mm'],armes:['RPG-7','RPG-7V','RPG-7V2','RPG-27','RPG-30'],typecaisse:['Caisse bois réglementaire','Caisse métal étanche'],mode:'standard',labelUnite:'Roquettes/Boîte'},
+  '1325':{label:'Grenades',desig:['Grenade offensive RGD-5','Grenade défensive F-1','Grenade 40mm VOG-25','Grenade fumigène M18'],typeballe:['Offensive — effet de souffle','Défensive — fragmentation','Fragmentation GP-25','Fumigène — marquage'],calibre:['Standard (à main)','40mm GP-25','40mm M203'],armes:['À main','GP-25 sous AK','M203 sous M16','GP-34'],typecaisse:['Caisse bois réglementaire','Caisse métal'],mode:'standard',labelUnite:'Grenades/Boîte'},
+  '1330':{label:'Mines',desig:['Mine antichar TM-62M','Mine antipersonnel PMN-2','Mine POM-2'],typeballe:['Antichar — pression','Antipersonnel — pression','Signalisation'],calibre:['TM-62M','PMN-2','POM-2'],armes:['Sol / route','Sol / végétation'],typecaisse:['Caisse bois réglementaire','Caisse métal étanche'],mode:'mines'},
+  '1336':{label:'Bombes',desig:['Bombe FAB-250','Bombe RBK-250','Bombe FAB-500'],typeballe:['HE — Haute explosivité','Fragmentation sous-munitions','Incendiaire'],calibre:['250 kg','275 kg','500 kg'],armes:['Non guidée','Guidage GPS','Guidage laser'],typecaisse:['Châssis de transport','Conteneur métallique'],mode:'bombes'},
+  '1340':{label:'Missiles guidés',desig:['Missile antichar MILAN','Missile Igla-S','Missile Kornet'],typeballe:['SACLOS filaire','IR passif','Laser'],calibre:['MILAN 2','9K338 Igla-S','9M133 Kornet'],armes:['Poste de tir MILAN','Tireur individuel'],typecaisse:['Conteneur individuel'],mode:'individuel'},
+  '1345':{label:'Charges explosives',desig:['TNT militaire 200g','C4 plastique','Semtex H'],typeballe:['TNT','PETN/RDX','Semtex'],calibre:['200 g/bloc','500 g/pain','250 g/pain'],armes:['Détonateur électrique','Mèche de sécurité'],typecaisse:['Caisse bois réglementaire','Caisse métal étanche'],mode:'charges',labelUnite:'Blocs/Boîte'},
+  '1370':{label:'Fumigènes et pyrotechnique',desig:['Grenade fumigène M18 rouge','Grenade fumigène M18 vert','Fusée éclairante 26mm','Artifice IR'],typeballe:['Fumigène rouge','Fumigène vert','Éclairante','Leurre IR'],calibre:['M18 (standard)','Signal 26mm','Signal 35mm'],armes:['À main','Pistolet signal 26mm','Dispenseur embarqué'],typecaisse:['Caisse bois réglementaire','Caisse métal'],mode:'standard',labelUnite:'Unités/Boîte'},
+  '1375':{label:'Détonateurs et amorces',desig:['Détonateur électrique','Détonateur non électrique','Mèche de sécurité'],typeballe:['Électrique instantané','Non électrique','Pyrotechnique retard'],calibre:['0 ms','1,2 m/min','100 ms'],armes:['TNT, C4, ANFO','Dynamite militaire'],typecaisse:['Caisse métal étanche'],mode:'detonateurs'},
+  '1376':{label:'Explosifs en vrac',desig:['ANFO militaire','Émulsion explosive','Dynamite militaire vrac'],typeballe:['Nitrate/Fuel déflagrant','Émulsion','Nitroglycérine'],calibre:['25 kg/sac','1 kg/cartouche'],armes:['Détonateurs électriques'],typecaisse:['Palette bâchée','Sac polypropylène'],mode:'vrac'},
+};
+
+/* =================================================================
+   DONNÉES STOCKS
+   ================================================================= */
+const stocks = [
+  {code:'10-1010-BF001',grp:'10',cl:'1010',name:"Fusil d'assaut",type:"Fusil d'assaut",soustype:'Automatique',modele:'AK-103',calibre:'7,62x39 mm',unite:'Dépôt central',qty:342,seuil:100,loc:'Magasin A-01',st:'ok'},
+  {code:'10-1015-BF001',grp:'10',cl:'1015',name:'Mitrailleuse légère',type:'Mitrailleuse légère',soustype:'Automatique',modele:'PKM (PK)',calibre:'7,62x54R mm',unite:'Sector Sahel',qty:48,seuil:20,loc:'Magasin A-02',st:'ok'},
+  {code:'10-1005-BF001',grp:'10',cl:'1005',name:'Pistolet',type:'Pistolet',soustype:'Service',modele:'Glock 17 Gen 5',calibre:'9x19 mm Parabellum',unite:'GFS',qty:128,seuil:50,loc:'Magasin A-03',st:'ok'},
+  {code:'10-1030-BF001',grp:'10',cl:'1030',name:'Lance-roquettes',type:'Lance-roquettes',soustype:'Antichar',modele:'RPG-7',calibre:'PG-7V (85 mm)',unite:'GFS',qty:32,seuil:15,loc:'Soute A-04',st:'ok'},
+  {code:'10-1010-BF002',grp:'10',cl:'1010',name:"Fusil d'assaut",type:"Fusil d'assaut",soustype:'Moderne',modele:'FAMAS F1',calibre:'5,56x45 mm',unite:'GFS',qty:65,seuil:30,loc:'Magasin A-01',st:'ok'},
+  {code:'13-1305-BF001',grp:'13',cl:'1305',name:'Munitions 7,62x39mm BO',type:'Munitions petit calibre',calibre:'7,62x39 mm',typeballe:'BO — Balle Ordinaire',typecaisse:'Caisse bois réglementaire',origine:'Import Russie',nbcaisses:50,boitescaisse:20,cartboite:15,unite:'Dépôt central',qty:15000,seuil:5000,loc:'Soute B-01',st:'ok'},
+  {code:'13-1305-BF002',grp:'13',cl:'1305',name:'Munitions 7,62x39mm BT',type:'Munitions petit calibre',calibre:'7,62x39 mm',typeballe:'BT — Balle Traçante',typecaisse:'Caisse bois réglementaire',origine:'Import Russie',nbcaisses:14,boitescaisse:20,cartboite:15,unite:'Dépôt central',qty:4200,seuil:2000,loc:'Soute B-01',st:'ok'},
+  {code:'13-1305-BF003',grp:'13',cl:'1305',name:'Munitions 7,62x54R BO',type:'Munitions petit calibre',calibre:'7,62x54R mm',typeballe:'BO — Balle Ordinaire',typecaisse:'Caisse métal étanche',origine:'Import Russie',nbcaisses:15,boitescaisse:15,cartboite:20,unite:'Sector Sahel',qty:4500,seuil:1500,loc:'Soute B-02',st:'ok'},
+  {code:'13-1320-BF001',grp:'13',cl:'1320',name:'Charges RPG-7 HEAT',type:'Roquettes',calibre:'PG-7 / 85mm',typeballe:'HEAT — Antichar',typecaisse:'Caisse bois réglementaire',origine:'Import Russie',nbcaisses:2,boitescaisse:4,cartboite:1,unite:'GFS',qty:8,seuil:30,loc:'Soute B-03',st:'danger'},
+  {code:'84-8415-BF001',grp:'84',cl:'8415',name:'Gilets pare-balles NIJ III',unite:'VDP Kaya',qty:280,seuil:150,loc:'Magasin C-01',st:'ok'},
+  {code:'84-8415-BF002',grp:'84',cl:'8415',name:'Casques balistiques M88',unite:'3e Bataillon',qty:412,seuil:200,loc:'Magasin C-02',st:'ok'},
+  {code:'23-2310-BF001',grp:'23',cl:'2310',name:'Toyota HZJ78 Pick-up',unite:'Sector Sahel',qty:12,seuil:10,loc:'Parc D-01',st:'ok'},
+  {code:'23-2350-BF001',grp:'23',cl:'2350',name:'Camion Ural 4320',unite:'Dépôt central',qty:4,seuil:6,loc:'Parc D-01',st:'warn'},
+  {code:'65-6545-BF001',grp:'65',cl:'6545',name:'Kit médical de campagne',unite:'CMA',qty:58,seuil:40,loc:'Magasin E-01',st:'ok'},
+  {code:'65-6505-BF001',grp:'65',cl:'6505',name:'Morphine (boîte)',unite:'CMA',qty:12,seuil:15,loc:'Pharmacie E-02',st:'warn'},
+  {code:'89-8905-BF001',grp:'89',cl:'8905',name:'Rations alimentaires',unite:'Dépôt central',qty:1850,seuil:2000,loc:'Entrepôt F-01',st:'warn'},
+  {code:'91-9110-BF001',grp:'91',cl:'9110',name:'Carburant F-54 (litre)',unite:'Dépôt central',qty:820,seuil:1000,loc:'Cuve G-01',st:'warn'},
+  {code:'58-5820-BF001',grp:'58',cl:'5820',name:'Radio portative VHF',unite:'3e Bataillon',qty:45,seuil:30,loc:'Magasin H-01',st:'ok'},
+];
+
+/* =================================================================
+   DONNÉES MOUVEMENTS
+   ================================================================= */
+const mvtHist = [
+  {ref:'#MV-2604-001',date:'20/04',grp:'10',type:'Sortie',desig:"Fusil d'assaut",cl:'1010',soustype:'Automatique',modele:'AK-103',calibre:'7,62x39 mm',codesv:'CS-BF-10-2022-0001',qty:1,orig:'Dépôt central',dest:'3e Bataillon',st:'Validé'},
+  {ref:'#MV-2604-002',date:'20/04',grp:'13',type:'Entrée',desig:'Munitions 7,62x39mm BO',cl:'1305',typeMun:'Munitions petit calibre',calibre:'7,62x39 mm',typeballe:'BO — Balle Ordinaire',typecaisse:'Caisse bois réglementaire',origine:'Import Russie',nbcaisses:20,boitescaisse:20,cartboite:15,totcaisse:300,totcart:6000,orig:'Fournisseur RUS',dest:'Dépôt central',st:'Validé'},
+  {ref:'#MV-2604-003',date:'19/04',grp:'84',type:'Sortie',desig:'Gilets NIJ III',qty:30,orig:'Dépôt central',dest:'VDP Kaya',st:'En cours'},
+  {ref:'#MV-2604-004',date:'19/04',grp:'89',type:'Entrée',desig:'Rations alimentaires',qty:500,orig:'DGABE',dest:'Dépôt central',st:'Validé'},
+  {ref:'#MV-2604-005',date:'18/04',grp:'23',type:'Transfert',desig:'Toyota HZJ78',qty:2,orig:'3e Bataillon',dest:'Sector Sahel',st:'En attente'},
+  {ref:'#MV-2604-006',date:'18/04',grp:'91',type:'Sortie',desig:'Carburant F-54 (L)',qty:300,orig:'Dépôt central',dest:'VDP Kaya',st:'Validé'},
+  {ref:'#MV-2604-007',date:'17/04',grp:'65',type:'Entrée',desig:'Kit médical campagne',qty:20,orig:'CMA',dest:'Dépôt central',st:'Validé'},
+  {ref:'#MV-2604-008',date:'17/04',grp:'13',type:'Transfert',desig:'Mun. 7,62x54R BO',cl:'1305',typeMun:'Munitions petit calibre',calibre:'7,62x54R mm',typeballe:'BO — Balle Ordinaire',typecaisse:'Caisse métal étanche',origine:'Import Russie',nbcaisses:5,boitescaisse:15,cartboite:20,totcaisse:300,totcart:1500,orig:'Dépôt central',dest:'GFS',st:'Validé'},
+  {ref:'#MV-2604-009',date:'16/04',grp:'10',type:'Sortie',desig:"Fusil d'assaut",cl:'1010',soustype:'Standard',modele:'AKM',calibre:'7,62x39 mm',codesv:'CS-BF-10-2024-0200',qty:1,orig:'Dépôt central',dest:'VDP Kaya',st:'Validé'},
+  {ref:'#MV-2604-010',date:'16/04',grp:'84',type:'Entrée',desig:'Casques balistiques M88',qty:50,orig:'Fournisseur',dest:'Dépôt central',st:'Validé'},
+  {ref:'#MV-2604-011',date:'15/04',grp:'58',type:'Transfert',desig:'Radio portative VHF',qty:8,orig:'Dépôt central',dest:'Sector Sahel',st:'Validé'},
+];
+let mvtFiltered = [...mvtHist];
+
+/* =================================================================
+   DONNÉES DOTATIONS
+   ================================================================= */
+const dotData = [
+  {u:'3e Bataillon',eff:480,arm:95,pro:88,veh:62,viv:21,med:75,carb:68,taux:73},
+  {u:'VDP Kaya',eff:320,arm:71,pro:66,veh:40,viv:14,med:60,carb:45,taux:56},
+  {u:'Sector Sahel',eff:560,arm:91,pro:85,veh:70,viv:30,med:80,carb:72,taux:75},
+  {u:'GFS',eff:180,arm:98,pro:96,veh:88,viv:45,med:95,carb:90,taux:87},
+  {u:'CMA',eff:95,arm:0,pro:90,veh:85,viv:60,med:98,carb:80,taux:86},
+];
+
+/* =================================================================
+   NAVIGATION
+   ================================================================= */
+function pg(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('pg-title').textContent = pgTitles[id] || id;
+  if (id === 'stocks') { renderStocksGrpGrid(); filterStocks(); }
+  if (id === 'mvt') { renderMvtGrpGrid(); renderMvtHist(); }
+  if (id === 'dot') renderDot();
+  if (id === 'tb') renderTB();
+}
+
+/* =================================================================
+   GRILLES GROUPES NSC
+   ================================================================= */
+let stGrp = '';
+let mvtGrp = '10';
+
+function makeGrpGrid(containerId, clickFn, activeG) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = Object.entries(grpCfg).map(([g, cfg]) => `
+    <div class="g-btn${activeG===g?' active':''}" data-g="${g}"
+         onclick="${clickFn}('${g}',this)"
+         style="${activeG===g?'background:'+cfg.color+';color:#fff;border-color:transparent;':''}">
+      <span class="gi">${cfg.ico}</span>${cfg.lbl.replace(' — ','<br>')}
+    </div>`).join('');
+}
+
+function renderStocksGrpGrid() { makeGrpGrid('stocks-grp-grid','selStGrp',stGrp); }
+function renderMvtGrpGrid()    { makeGrpGrid('mvt-grp-grid','selMvtGrp',mvtGrp); }
+
+function selStGrp(g, el) {
+  stGrp = g;
+  document.querySelectorAll('#stocks-grp-grid .g-btn').forEach(b => {
+    b.classList.remove('active'); b.style.background=''; b.style.color=''; b.style.borderColor='';
+  });
+  el.classList.add('active'); el.style.background=grpCfg[g].color; el.style.color='#fff'; el.style.borderColor='transparent';
+  document.getElementById('st-grp-lbl').textContent = grpCfg[g].lbl;
+  // Mettre à jour filtre classes
+  const sel = document.getElementById('st-classe');
+  sel.innerHTML = '<option value="">Toutes classes</option>';
+  Object.entries(grpCfg[g].classes||{}).forEach(([k,v]) => { sel.innerHTML += `<option value="${k}">${k} — ${v}</option>`; });
+  // Filtres contextuels G10
+  const isG10 = g==='10', isG13 = g==='13';
+  ['st-type-g10','st-modele-g10','st-calibre-g10'].forEach(id => {
+    const e = document.getElementById(id); if(e) e.style.display = isG10 ? 'inline-block':'none';
+  });
+  ['st-calibre-g13','st-typeballe-g13','st-typecaisse-g13','st-origine-g13'].forEach(id => {
+    const e = document.getElementById(id); if(e) e.style.display = isG13 ? 'inline-block':'none';
+  });
+  if (isG10) {
+    const allTypes = [...new Set(Object.values(G10_DATA).flatMap(d=>d.type))];
+    const allModeles = [...new Set(Object.values(G10_DATA).flatMap(d=>d.modele))];
+    const allCalibres = [...new Set(Object.values(G10_DATA).flatMap(d=>d.calibre))];
+    document.getElementById('st-type-g10').innerHTML   = '<option value="">Tous types</option>'   + allTypes.map(v=>`<option>${v}</option>`).join('');
+    document.getElementById('st-modele-g10').innerHTML = '<option value="">Tous modèles</option>' + allModeles.map(v=>`<option>${v}</option>`).join('');
+    document.getElementById('st-calibre-g10').innerHTML= '<option value="">Tous calibres</option>'+ allCalibres.map(v=>`<option>${v}</option>`).join('');
+  }
+  if (isG13) {
+    const allCalG13 = [...new Set(Object.values(G13_DATA).flatMap(d=>d.calibre))];
+    const allTB = [...new Set(Object.values(G13_DATA).flatMap(d=>d.typeballe))];
+    const allTC = [...new Set(Object.values(G13_DATA).flatMap(d=>d.typecaisse))];
+    document.getElementById('st-calibre-g13').innerHTML  = '<option value="">Tous calibres</option>' + allCalG13.map(v=>`<option>${v}</option>`).join('');
+    document.getElementById('st-typeballe-g13').innerHTML= '<option value="">Type de balle</option>' + allTB.map(v=>`<option>${v}</option>`).join('');
+    document.getElementById('st-typecaisse-g13').innerHTML='<option value="">Type de caisse</option>'+ allTC.map(v=>`<option>${v}</option>`).join('');
+    document.getElementById('st-origine-g13').innerHTML  = '<option value="">Toutes origines</option><option>Import Russie</option><option>Import France</option><option>Dotation État BF</option>';
+  }
+  updateStockColsFilters();
+  filterStocks();
+}
+
+function updateStockColsFilters() {
+  const g = stGrp;
+  document.querySelectorAll('.st-col-g10').forEach(c => { c.style.display = g==='10' ? 'table-cell':'none'; });
+  document.querySelectorAll('.st-col-g13').forEach(c => { c.style.display = g==='13' ? 'table-cell':'none'; });
+}
+
+/* =================================================================
+   GESTION DES STOCKS — FILTRAGES
+   ================================================================= */
+let stFiltered = [...stocks];
+
+function filterStocks() {
+  const s   = document.getElementById('st-search').value.toLowerCase();
+  const cl  = document.getElementById('st-classe').value;
+  const st  = document.getElementById('st-statut').value;
+  const u   = document.getElementById('st-unite').value;
+  const t10 = document.getElementById('st-type-g10')?.value||'';
+  const m10 = document.getElementById('st-modele-g10')?.value||'';
+  const c10 = document.getElementById('st-calibre-g10')?.value||'';
+  const c13 = document.getElementById('st-calibre-g13')?.value||'';
+  const tb13= document.getElementById('st-typeballe-g13')?.value||'';
+  const tc13= document.getElementById('st-typecaisse-g13')?.value||'';
+  const or13= document.getElementById('st-origine-g13')?.value||'';
+
+  stFiltered = stocks.filter(a =>
+    (!stGrp || a.grp===stGrp) &&
+    (!s  || a.name.toLowerCase().includes(s) || a.code.toLowerCase().includes(s)) &&
+    (!cl || a.cl===cl) && (!st || a.st===st) && (!u || (a.unite||'').includes(u)) &&
+    (!t10 || a.type===t10) && (!m10 || a.modele===m10) && (!c10 || a.calibre===c10) &&
+    (!c13 || a.calibre===c13) && (!tb13 || a.typeballe===tb13) &&
+    (!tc13 || a.typecaisse===tc13) && (!or13 || a.origine===or13)
+  );
+
+  document.getElementById('st-cnt').textContent = stFiltered.length;
+  updateStockColsFilters();
+
+  // Construire l'entête selon le groupe
+  const thead = document.getElementById('st-thead-row');
+  if (stGrp === '10') {
+    thead.innerHTML = `
+      <th style="width:32px;"><input type="checkbox" onchange="toggleStSel(this)"></th>
+      <th>N°</th><th>Code NSN</th><th>Groupe</th><th>Classe</th><th>Désignation</th>
+      <th class="st-col-g10">Type</th><th class="st-col-g10">Sous-type</th>
+      <th class="st-col-g10">Modèle</th><th class="st-col-g10">Calibre</th>
+      <th>Unité</th><th>Qté dispo.</th><th>Seuil</th><th>Emplacement</th><th>Statut</th>`;
+  } else if (stGrp === '13') {
+    thead.innerHTML = `
+      <th style="width:32px;"><input type="checkbox" onchange="toggleStSel(this)"></th>
+      <th>N°</th><th>Code NSN</th><th>Classe</th><th>Désignation</th>
+      <th class="st-col-g13">Type</th>
+      <th class="st-col-g13">Calibre</th>
+      <th class="st-col-g13">Type balle</th>
+      <th class="st-col-g13">Type caisse</th>
+      <th class="st-col-g13">Origine</th>
+      <th class="st-col-g13">Nb caisses</th>
+      <th class="st-col-g13">Boîtes/C.</th>
+      <th class="st-col-g13">Cart./B.</th>
+      <th class="st-col-g13">Total/C.</th>
+      <th class="st-col-g13" style="font-weight:600;color:#A32D2D;">Total cart.</th>
+      <th>Unité</th><th>Qté</th><th>Seuil</th><th>Emplacement</th><th>Statut</th>`;
+  } else {
+    thead.innerHTML = `
+      <th style="width:32px;"><input type="checkbox" onchange="toggleStSel(this)"></th>
+      <th>N°</th><th>Code NSN</th><th>Groupe</th><th>Classe</th><th>Désignation</th>
+      <th>Unité</th><th>Qté dispo.</th><th>Seuil</th><th>Emplacement</th><th>Statut</th>`;
+  }
+  updateStockColsFilters();
+
+  document.getElementById('st-tbody').innerHTML = stFiltered.map((r, i) => {
+    const gc = grpCfg[r.grp]?.color||'#555';
+    const stBadge = r.st==='ok' ? 'b-ok' : r.st==='warn' ? 'b-warn' : 'b-dn';
+    const stLbl   = r.st==='ok' ? 'Normal' : r.st==='warn' ? 'Faible' : 'Critique';
+    const parc = r.boitescaisse && r.cartboite ? r.boitescaisse*r.cartboite : 0;
+    const tot  = r.nbcaisses && parc ? r.nbcaisses*parc : 0;
+    if (stGrp==='10') return `<tr>
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="st-cb" onchange="updateStSel()"></td>
+      <td style="color:#888;font-size:10px;">${i+1}</td>
+      <td style="font-family:monospace;font-size:9px;">${r.code}</td>
+      <td><span class="badge b-gray" style="background:${gc}22;color:${gc};font-size:9px;">G${r.grp}</span></td>
+      <td style="font-size:10px;">${r.cl}</td>
+      <td>${r.name}</td>
+      <td class="st-col-g10" style="font-size:10px;">${r.type||'—'}</td>
+      <td class="st-col-g10" style="font-size:10px;">${r.soustype||'—'}</td>
+      <td class="st-col-g10" style="font-size:10px;font-weight:500;">${r.modele||'—'}</td>
+      <td class="st-col-g10" style="font-size:10px;">${r.calibre||'—'}</td>
+      <td style="font-size:10px;">${r.unite||'—'}</td>
+      <td style="font-weight:500;">${r.qty.toLocaleString()}</td>
+      <td style="color:#888;">${r.seuil}</td>
+      <td style="font-size:10px;color:#888;">${r.loc}</td>
+      <td><span class="badge ${stBadge}" style="font-size:9px;">${stLbl}</span></td>
+    </tr>`;
+    if (stGrp==='13') return `<tr>
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="st-cb" onchange="updateStSel()"></td>
+      <td style="color:#888;font-size:10px;">${i+1}</td>
+      <td style="font-family:monospace;font-size:9px;">${r.code}</td>
+      <td style="font-size:10px;">${r.cl}</td>
+      <td>${r.name}</td>
+      <td class="st-col-g13" style="font-size:10px;">${r.type||'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;">${r.calibre||'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;">${r.typeballe||'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;">${r.typecaisse||'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;">${r.origine||'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;font-weight:500;">${r.nbcaisses||'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;">${r.boitescaisse||'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;">${r.cartboite||'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;font-weight:600;">${parc>0?parc.toLocaleString():'—'}</td>
+      <td class="st-col-g13" style="font-size:10px;font-weight:700;color:#A32D2D;">${tot>0?tot.toLocaleString():'—'}</td>
+      <td style="font-size:10px;">${r.unite||'—'}</td>
+      <td style="font-weight:500;">${r.qty.toLocaleString()}</td>
+      <td style="color:#888;">${r.seuil}</td>
+      <td style="font-size:10px;color:#888;">${r.loc}</td>
+      <td><span class="badge ${stBadge}" style="font-size:9px;">${stLbl}</span></td>
+    </tr>`;
+    return `<tr>
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="st-cb" onchange="updateStSel()"></td>
+      <td style="color:#888;font-size:10px;">${i+1}</td>
+      <td style="font-family:monospace;font-size:9px;">${r.code}</td>
+      <td><span class="badge b-gray" style="background:${gc}22;color:${gc};font-size:9px;">G${r.grp}</span></td>
+      <td style="font-size:10px;">${r.cl||'—'}</td>
+      <td>${r.name}</td>
+      <td style="font-size:10px;">${r.unite||'—'}</td>
+      <td style="font-weight:500;">${r.qty.toLocaleString()}</td>
+      <td style="color:#888;">${r.seuil}</td>
+      <td style="font-size:10px;color:#888;">${r.loc}</td>
+      <td><span class="badge ${stBadge}" style="font-size:9px;">${stLbl}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleStSel(cb) {
+  document.querySelectorAll('.st-cb').forEach(c => { c.checked = cb.checked; });
+  updateStSel();
+}
+function updateStSel() {
+  const sel = document.querySelectorAll('.st-cb:checked').length;
+  const bar = document.getElementById('st-lot-bar');
+  bar.classList.toggle('hidden', sel === 0);
+  if (sel > 0) document.getElementById('st-lot-lbl').textContent = sel + ' article(s) sélectionné(s)';
+}
+
+function resetStocks() {
+  ['st-search','st-classe','st-unite','st-statut','st-type-g10','st-modele-g10','st-calibre-g10','st-calibre-g13','st-typeballe-g13','st-typecaisse-g13','st-origine-g13'].forEach(id => {
+    const e = document.getElementById(id); if(e) e.value='';
+  });
+  filterStocks();
+}
+
+// Formulaire ajout article
+function showAddForm() {
+  const f = document.getElementById('add-form');
+  f.classList.toggle('visible');
+  if (f.classList.contains('visible')) updateAddClasses();
+}
+function updateAddClasses() {
+  const g = document.getElementById('add-grp').value;
+  const sel = document.getElementById('add-classe');
+  sel.innerHTML = '<option value="">Sélectionner...</option>';
+  Object.entries(grpCfg[g]?.classes||{}).forEach(([k,v]) => { sel.innerHTML += `<option value="${k}">${k} — ${v}</option>`; });
+}
+function ajouterArticle() {
+  const el = document.getElementById('suc-add'); el.style.display='block';
+  el.innerHTML='Article ajouté au stock. Synchronisation SSAM-BF effectuée.';
+  setTimeout(()=>{el.style.display='none';},5000);
+}
+
+/* =================================================================
+   MOUVEMENTS — G10 FORMULAIRE DYNAMIQUE PAR CLASSE
+   ================================================================= */
+let mvtType = '';
+let mvtCnt = 8;
+
+function selMvtType(t, el) {
+  mvtType = t;
+  document.querySelectorAll('.mvt-type-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const badge = document.getElementById('mvt-type-badge');
+  const colors = {Entrée:'b-ok', Sortie:'b-dn', Transfert:'b-info'};
+  badge.className = 'badge ' + (colors[t]||'b-gray');
+  badge.textContent = t; badge.style.display = 'inline-block';
+  document.getElementById('mvt-grp-lbl').textContent = 'Groupe ' + mvtGrp + ' — ' + t;
+}
+
+function selMvtGrp(g, el) {
+  mvtGrp = g;
+  document.querySelectorAll('#mvt-grp-grid .g-btn').forEach(b => {
+    b.classList.remove('active'); b.style.background=''; b.style.color=''; b.style.borderColor='';
+  });
+  el.classList.add('active'); el.style.background=grpCfg[g].color; el.style.color='#fff'; el.style.borderColor='transparent';
+  document.getElementById('mvt-imp-grp-lbl').textContent = (grpCfg[g]?.lbl||'').replace(' — ',' — ');
+  document.getElementById('mvt-grp-lbl').textContent = grpCfg[g]?.lbl + (mvtType ? ' — ' + mvtType : ' — Sélectionner un type ci-dessus');
+  renderMvtFormExtra(g);
+}
+
+function renderMvtFormExtra(g) {
+  const container = document.getElementById('mvt-form-extra');
+  if (!container) return;
+
+  // === G10 — ARMES : mode Scan DPM principal + saisie manuelle + Quantité ===
+  if (g === '10') {
+    container.innerHTML = `
+      <!-- Mode scan / saisie -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div id="mvt-g10-mode-scan" onclick="selMvtScanMode('g10','scan')"
+             style="border:2px solid #185FA5;background:#E6F1FB;border-radius:10px;padding:10px;cursor:pointer;">
+          <div style="font-size:16px;margin-bottom:4px;">📡</div>
+          <div style="font-size:11px;font-weight:500;color:#0C1F3A;">Scan Data Matrix (DPM)</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">Mode principal — Pointer le scanner vers la carcasse</div>
+        </div>
+        <div id="mvt-g10-mode-manuel" onclick="selMvtScanMode('g10','manuel')"
+             style="border:1px solid #ddd;border-radius:10px;padding:10px;cursor:pointer;background:#fff;">
+          <div style="font-size:16px;margin-bottom:4px;">⌨️</div>
+          <div style="font-size:11px;font-weight:500;color:#555;">Saisie manuelle</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">Mode secours — Scanner indisponible ou Data Matrix illisible</div>
+        </div>
+      </div>
+      <!-- Zone scan DPM -->
+      <div id="mvt-g10-scan-zone" style="background:#f8f8f5;border:1px dashed #185FA5;border-radius:10px;padding:16px;text-align:center;margin-bottom:12px;">
+        <div style="font-size:28px;margin-bottom:6px;">📡</div>
+        <div style="font-size:12px;font-weight:500;color:#0C1F3A;margin-bottom:4px;">Pointer le scanner vers le Data Matrix gravé sur la carcasse</div>
+        <div style="font-size:11px;color:#888;margin-bottom:12px;">Le Code Suivi sera lu instantanément — tous les champs se prérempliront automatiquement</div>
+        <button class="btn-p" onclick="simulerScanDPM_G10()">▶ Simuler lecture DPM</button>
+        <div id="mvt-g10-scan-result" style="display:none;background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:8px 12px;margin-top:10px;font-size:11px;color:#27500A;text-align:left;"></div>
+      </div>
+      <!-- Résultats scan / saisie manuelle -->
+      <div id="mvt-g10-fields" style="display:none;">
+        <div class="fg-3">
+          <div class="fg"><label>Code Suivi / NS-BF</label>
+            <input type="text" id="mvt-codesv" placeholder="Ex : CS-BF-10-2026-0089" style="background:#EAF3DE;font-family:monospace;font-weight:500;color:#1D9E75;">
+          </div>
+          <div class="fg"><label>Classe NSC</label>
+            <select id="mvt-cl-10" onchange="updateMvtG10Champs()">
+              <option value="">Sélectionner la classe...</option>
+              <option value="1005">1005 — Pistolets et revolvers</option>
+              <option value="1010">1010 — Fusils et carabines</option>
+              <option value="1015">1015 — Fusils-mitrailleurs</option>
+              <option value="1020">1020 — Canons automatiques</option>
+              <option value="1025">1025 — Mortiers</option>
+              <option value="1030">1030 — Armes antichar RPG</option>
+              <option value="1040">1040 — Grenades à main</option>
+              <option value="1055">1055 — Lance-grenades</option>
+              <option value="1090">1090 — Armes spéciales</option>
+            </select>
+          </div>
+          <div class="fg"><label>Désignation <span style="font-size:9px;color:#185FA5;">(auto)</span></label>
+            <select id="mvt-g10-desig"><option value="">—</option></select>
+          </div>
+        </div>
+        <div class="fg-4">
+          <div class="fg"><label>Type <span style="font-size:9px;color:#185FA5;">(auto)</span></label>
+            <select id="mvt-g10-type"><option value="">—</option></select>
+          </div>
+          <div class="fg"><label>Sous-Type <span style="font-size:9px;color:#185FA5;">(auto)</span></label>
+            <select id="mvt-g10-soustype"><option value="">—</option></select>
+          </div>
+          <div class="fg"><label>Modèle <span style="font-size:9px;color:#185FA5;">(auto)</span></label>
+            <select id="mvt-g10-modele"><option value="">—</option></select>
+          </div>
+          <div class="fg"><label>Calibre <span style="font-size:9px;color:#185FA5;">(auto)</span></label>
+            <select id="mvt-g10-calibre"><option value="">—</option></select>
+          </div>
+        </div>
+        <div class="fg-3">
+          <div class="fg"><label>Quantité (armes)</label>
+            <input type="number" id="mvt-qty-g10" placeholder="Ex : 1 (traçabilité indiv.)" min="1" value="1">
+          </div>
+          <div class="fg"><label>Unité détentrice actuelle</label>
+            <input type="text" id="mvt-g10-unite-src" placeholder="Chargé automatiquement..." style="background:#f8f8f5;color:#888;" readonly>
+          </div>
+          <div class="fg" style="align-self:end;">
+            <button class="btn" onclick="selMvtScanMode('g10','scan');document.getElementById('mvt-g10-fields').style.display='none';document.getElementById('mvt-g10-scan-zone').style.display='block';">
+              ↺ Rescanner une autre arme
+            </button>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // === G13 — MUNITIONS : mode Scan QR principal + saisie manuelle ===
+  if (g === '13') {
+    container.innerHTML = `
+      <!-- Mode scan / saisie G13 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div id="mvt-g13-mode-scan" onclick="selMvtScanMode('g13','scan')"
+             style="border:2px solid #A32D2D;background:#FCEBEB;border-radius:10px;padding:10px;cursor:pointer;">
+          <div style="font-size:16px;margin-bottom:4px;">📷</div>
+          <div style="font-size:11px;font-weight:500;color:#A32D2D;">Scan QR code (caisse)</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">Mode principal — Pointer vers le QR code sur la caisse</div>
+        </div>
+        <div id="mvt-g13-mode-manuel" onclick="selMvtScanMode('g13','manuel')"
+             style="border:1px solid #ddd;border-radius:10px;padding:10px;cursor:pointer;background:#fff;">
+          <div style="font-size:16px;margin-bottom:4px;">⌨️</div>
+          <div style="font-size:11px;font-weight:500;color:#555;">Saisie manuelle</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">Mode secours — Scanner indisponible ou QR illisible</div>
+        </div>
+      </div>
+      <!-- Zone scan QR -->
+      <div id="mvt-g13-scan-zone" style="background:#f8f8f5;border:1px dashed #A32D2D;border-radius:10px;padding:16px;text-align:center;margin-bottom:12px;">
+        <div style="font-size:28px;margin-bottom:6px;">📷</div>
+        <div style="font-size:12px;font-weight:500;color:#A32D2D;margin-bottom:4px;">Pointer le scanner vers le QR code sur la caisse de munitions</div>
+        <div style="font-size:11px;color:#888;margin-bottom:12px;">La Classe NSC, la Désignation, le Calibre, le Type balle et le conditionnement complet se chargeront automatiquement</div>
+        <button class="btn-p" style="background:#A32D2D;" onclick="simulerScanQR_G13()">▶ Simuler lecture QR code</button>
+        <div id="mvt-g13-scan-result" style="display:none;background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:8px 12px;margin-top:10px;font-size:11px;color:#27500A;text-align:left;"></div>
+      </div>
+      <!-- Formulaire (scan ou manuel) -->
+      <div id="mvt-g13-fields">
+      <div class="fg" style="max-width:500px;margin-bottom:12px;">
+        <label style="font-size:11px;font-weight:500;color:#A32D2D;">Classe NSC <span style="font-size:10px;font-weight:400;color:#888;">(le formulaire s'adapte automatiquement)</span></label>
+        <select id="mvt-cl-13" onchange="updateMvtG13Form()" style="border:2px solid #A32D2D;font-weight:500;">
+          <option value="">▼ Sélectionner la classe en premier...</option>
+          <option value="1305">1305 — Munitions de petit calibre</option>
+          <option value="1310">1310 — Munitions de mortier</option>
+          <option value="1315">1315 — Munitions de canons (20mm+)</option>
+          <option value="1320">1320 — Roquettes</option>
+          <option value="1325">1325 — Grenades</option>
+          <option value="1330">1330 — Mines</option>
+          <option value="1336">1336 — Bombes</option>
+          <option value="1340">1340 — Missiles guidés</option>
+          <option value="1345">1345 — Charges explosives</option>
+          <option value="1370">1370 — Fumigènes et pyrotechnique</option>
+          <option value="1375">1375 — Détonateurs et amorces</option>
+          <option value="1376">1376 — Explosifs en vrac</option>
+        </select>
+      </div>
+      <div id="mvt-g13-dynamic">
+        <div style="background:#f8f8f5;border:1px dashed #ccc;border-radius:8px;padding:14px;text-align:center;color:#888;font-size:11px;">
+          Sélectionner une classe NSC ci-dessus pour afficher le formulaire de mouvement correspondant
+        </div>
+      </div>
+      </div>`; /* ferme mvt-g13-fields */
+    return;
+  }
+
+  // === Autres groupes — formulaire avec Scan QR ou DPM ===
+  const cfg = grpCfg[g];
+  const scanType = (g==='23'||g==='84'||g==='58') ? 'DPM' : 'QR code';
+  const scanIcon = (g==='23'||g==='84'||g==='58') ? '📡' : '📷';
+  const scanColor = grpCfg[g]?.color||'#185FA5';
+  const classOptions = Object.entries(cfg?.classes||{}).map(([k,v])=>`<option value="${k}">${k} — ${v}</option>`).join('');
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div onclick="selMvtScanMode('std','scan')"
+           style="border:2px solid ${scanColor};background:${scanColor}18;border-radius:10px;padding:10px;cursor:pointer;">
+        <div style="font-size:16px;margin-bottom:4px;">${scanIcon}</div>
+        <div style="font-size:11px;font-weight:500;color:${scanColor};">Scan ${scanType}</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">Mode principal — Pointer le scanner</div>
+      </div>
+      <div onclick="selMvtScanMode('std','manuel')"
+           style="border:1px solid #ddd;border-radius:10px;padding:10px;cursor:pointer;background:#fff;">
+        <div style="font-size:16px;margin-bottom:4px;">⌨️</div>
+        <div style="font-size:11px;font-weight:500;color:#555;">Saisie manuelle</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">Mode secours</div>
+      </div>
+    </div>
+    <div id="mvt-std-scan-zone" style="background:#f8f8f5;border:1px dashed ${scanColor};border-radius:10px;padding:14px;text-align:center;margin-bottom:12px;">
+      <div style="font-size:24px;margin-bottom:6px;">${scanIcon}</div>
+      <div style="font-size:12px;font-weight:500;margin-bottom:6px;">Pointer le scanner vers le ${scanType} du matériel</div>
+      <div style="font-size:11px;color:#888;margin-bottom:10px;">Désignation et Classe NSC se chargeront automatiquement</div>
+      <button class="btn-p" style="background:${scanColor};" onclick="simulerScanStd('${g}')">▶ Simuler lecture ${scanType}</button>
+      <div id="mvt-std-scan-result" style="display:none;background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:8px 12px;margin-top:10px;font-size:11px;color:#27500A;text-align:left;"></div>
+    </div>
+    <div class="fg-3">
+      <div class="fg"><label>Classe NSC</label><select id="mvt-cl-std"><option value="">Toutes classes</option>${classOptions}</select></div>
+      <div class="fg"><label>Désignation / Article</label>
+        <input type="text" id="mvt-art-std" placeholder="Ex : ${cfg?.lbl||'Article'}...">
+      </div>
+      <div class="fg"><label>Quantité</label><input type="number" id="mvt-qty" placeholder="Ex : 10"></div>
+    </div>`;
+}
+
+/* G10 — mise à jour des listes selon la classe sélectionnée */
+function updateMvtG10Champs() {
+  const cl = document.getElementById('mvt-cl-10').value;
+  const data = G10_DATA[cl];
+  const mapping = {
+    'mvt-g10-desig':'desig','mvt-g10-type':'type',
+    'mvt-g10-soustype':'soustype','mvt-g10-modele':'modele','mvt-g10-calibre':'calibre'
+  };
+  Object.entries(mapping).forEach(([id, key]) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    if (!data) { sel.innerHTML = '<option value="">Sélectionner la classe d\'abord</option>'; return; }
+    sel.innerHTML = '<option value="">Sélectionner...</option>' + data[key].map(v=>`<option>${v}</option>`).join('');
+  });
+}
+
+/* G13 — formulaire dynamique selon la classe (identique à SSAM-BF) */
+function updateMvtG13Form() {
+  const cl = document.getElementById('mvt-cl-13').value;
+  const container = document.getElementById('mvt-g13-dynamic');
+  if (!cl) {
+    container.innerHTML = '<div style="background:#f8f8f5;border:1px dashed #ccc;border-radius:8px;padding:14px;text-align:center;color:#888;font-size:11px;">Sélectionner une classe NSC ci-dessus</div>';
+    return;
+  }
+  const d = G13_DATA[cl];
+  if (!d) return;
+  let html = '';
+
+  // Classe 1340 — missiles : traçabilité individuelle
+  if (cl === '1340') {
+    html = `
+    <div style="background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:7px 11px;font-size:11px;color:#633806;margin-bottom:10px;">⚠ Missiles guidés — traçabilité individuelle. Un mouvement par missile.</div>
+    <div class="fg-3">
+      <div class="fg"><label>Code Suivi missile</label><input type="text" placeholder="CS-BF-13-2026-0001"></div>
+      <div class="fg"><label>Désignation</label><select>${d.desig.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Système / Modèle</label><select>${d.calibre.map(v=>`<option>${v}</option>`).join('')}</select></div>
+    </div>
+    <div class="fg-2">
+      <div class="fg"><label>NS-Usine</label><input type="text" placeholder="Ex : MLN-FRA-2026-0001"></div>
+      <div class="fg"><label>Type de guidage</label><select>${d.typeballe.map(v=>`<option>${v}</option>`).join('')}</select></div>
+    </div>`;
+    container.innerHTML = html; return;
+  }
+
+  // Formats obus (1310, 1315)
+  if (cl === '1310' || cl === '1315') {
+    html = `
+    <div class="fg-4">
+      <div class="fg"><label>Désignation</label><select>${d.desig.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>N° de lot</label><input type="text" placeholder="Ex : LOT-2026-0014"></div>
+      <div class="fg"><label>Type balle / obus</label><select>${d.typeballe.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Calibre</label><select>${d.calibre.map(v=>`<option>${v}</option>`).join('')}</select></div>
+    </div>
+    <div class="fg-4">
+      <div class="fg"><label>Systèmes compatibles</label><select>${d.armes.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Type de caisse</label><select>${d.typecaisse.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Nombre de caisses</label><input type="number" id="mvt-nbcaisses" placeholder="Ex : 10" oninput="calcMvtObus()"></div>
+      <div class="fg"><label>Obus / Caisse</label><input type="number" id="mvt-boitescaisse" placeholder="Ex : 4" oninput="calcMvtObus()"></div>
+    </div>
+    <div class="calc-box">Total obus : <strong id="mvt-total-obus">—</strong></div>`;
+    container.innerHTML = html; return;
+  }
+
+  // Format mines (1330)
+  if (cl === '1330') {
+    html = `
+    <div class="fg-4">
+      <div class="fg"><label>Désignation</label><select>${d.desig.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>N° de lot</label><input type="text" placeholder="Ex : LOT-MINE-2026-001"></div>
+      <div class="fg"><label>Type de mine</label><select>${d.typeballe.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Zone de pose</label><select>${d.armes.map(v=>`<option>${v}</option>`).join('')}</select></div>
+    </div>
+    <div class="fg-3">
+      <div class="fg"><label>Type de caisse</label><select>${d.typecaisse.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Nombre de caisses</label><input type="number" id="mvt-nbcaisses" placeholder="Ex : 5" oninput="calcMvtMines()"></div>
+      <div class="fg"><label>Mines / Caisse</label><input type="number" id="mvt-boitescaisse" placeholder="Ex : 6" oninput="calcMvtMines()"></div>
+    </div>
+    <div class="calc-box">Total mines : <strong id="mvt-total-mines">—</strong></div>
+    <div class="fg"><label>Statut neutralisation</label><select><option>Armé</option><option>Inerte</option><option>Neutralisé</option></select></div>`;
+    container.innerHTML = html; return;
+  }
+
+  // Format bombes (1336)
+  if (cl === '1336') {
+    html = `
+    <div class="fg-4">
+      <div class="fg"><label>Désignation</label><select>${d.desig.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Type bombe</label><select>${d.typeballe.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Masse (kg)</label><select>${d.calibre.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Guidage</label><select>${d.armes.map(v=>`<option>${v}</option>`).join('')}</select></div>
+    </div>
+    <div class="fg-3">
+      <div class="fg"><label>Type conteneur</label><select>${d.typecaisse.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Nombre de conteneurs</label><input type="number" id="mvt-nbcaisses" placeholder="Ex : 2" oninput="calcMvtBombes()"></div>
+      <div class="fg"><label>Bombes / Conteneur</label><input type="number" id="mvt-boitescaisse" placeholder="Ex : 4" oninput="calcMvtBombes()"></div>
+    </div>
+    <div class="calc-box">Total bombes : <strong id="mvt-total-bombes">—</strong></div>`;
+    container.innerHTML = html; return;
+  }
+
+  // Format vrac (1376)
+  if (cl === '1376') {
+    html = `
+    <div class="fg-4">
+      <div class="fg"><label>Désignation</label><select>${d.desig.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>N° de lot</label><input type="text" placeholder="Ex : LOT-EXPL-2026-001"></div>
+      <div class="fg"><label>Type explosif</label><select>${d.typeballe.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Masse / Unité</label><select>${d.calibre.map(v=>`<option>${v}</option>`).join('')}</select></div>
+    </div>
+    <div class="fg-4">
+      <div class="fg"><label>Type contenant</label><select>${d.typecaisse.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Nombre de contenants</label><input type="number" id="mvt-nbcaisses" placeholder="Ex : 4" oninput="calcMvtVrac()"></div>
+      <div class="fg"><label>Unités / Contenant</label><input type="number" id="mvt-boitescaisse" placeholder="Ex : 20" oninput="calcMvtVrac()"></div>
+      <div class="fg"><label>Kg / Unité</label><input type="number" id="mvt-cartboite" placeholder="Ex : 25" oninput="calcMvtVrac()"></div>
+    </div>
+    <div class="calc-box">Masse totale : <strong id="mvt-total-vrac" style="color:#A32D2D;">—</strong></div>`;
+    container.innerHTML = html; return;
+  }
+
+  // Format standard (1305, 1320, 1325, 1345, 1370, 1375)
+  const labelUnite = d.labelUnite || 'Cartouches/Boîte';
+  html = `
+    <div class="fg-4">
+      <div class="fg"><label>Désignation</label><select>${d.desig.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>N° de lot</label><input type="text" id="mvt-lot" placeholder="Ex : LOT-RUS-2026-0101"></div>
+      <div class="fg"><label>Type balle / ogive</label><select>${d.typeballe.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Calibre</label><select>${d.calibre.map(v=>`<option>${v}</option>`).join('')}</select></div>
+    </div>
+    <div class="fg-4">
+      <div class="fg"><label>Armes / Lanceurs compatibles</label><select>${d.armes.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Type de caisse</label><select>${d.typecaisse.map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="fg"><label>Origine / Fournisseur</label><select><option>Dotation État BF</option><option>Import Russie</option><option>Import France</option><option>Import Chine</option><option>Don bilatéral</option></select></div>
+      <div class="fg"><label>Nombre de caisses</label><input type="number" id="mvt-nbcaisses" placeholder="Ex : 10" oninput="calcMvtMun()"></div>
+    </div>
+    <div class="fg-3">
+      <div class="fg"><label>Boîtes / Caisse</label><input type="number" id="mvt-boitescaisse" placeholder="Ex : 20" oninput="calcMvtMun()"></div>
+      <div class="fg"><label>${labelUnite}</label><input type="number" id="mvt-cartboite" placeholder="Ex : 15" oninput="calcMvtMun()"></div>
+      <div class="fg" style="align-self:end;">
+        <div class="calc-box" id="mvt-calc">
+          Total / Caisse : <strong id="mvt-totcaisse">—</strong><br>
+          Total : <strong id="mvt-totcart" style="color:#A32D2D;">—</strong>
+        </div>
+      </div>
+    </div>`;
+  container.innerHTML = html;
+}
+
+/* Calculs mouvements */
+function calcMvtMun() {
+  const nb=parseInt(document.getElementById('mvt-nbcaisses')?.value)||0;
+  const bc=parseInt(document.getElementById('mvt-boitescaisse')?.value)||0;
+  const cb=parseInt(document.getElementById('mvt-cartboite')?.value)||0;
+  const parc=bc*cb, tot=nb*parc;
+  const tc=document.getElementById('mvt-totcaisse'); if(tc) tc.textContent=parc>0?parc.toLocaleString()+' unités':'—';
+  const tt=document.getElementById('mvt-totcart');   if(tt) tt.textContent=tot>0?tot.toLocaleString()+' unités':'—';
+}
+function calcMvtObus()  { const nb=parseInt(document.getElementById('mvt-nbcaisses')?.value)||0, ob=parseInt(document.getElementById('mvt-boitescaisse')?.value)||0, t=nb*ob; const e=document.getElementById('mvt-total-obus');  if(e) e.textContent=t>0?t.toLocaleString()+' obus':'—'; }
+function calcMvtMines() { const nb=parseInt(document.getElementById('mvt-nbcaisses')?.value)||0, mc=parseInt(document.getElementById('mvt-boitescaisse')?.value)||0, t=nb*mc; const e=document.getElementById('mvt-total-mines'); if(e) e.textContent=t>0?t.toLocaleString()+' mines':'—'; }
+function calcMvtBombes(){ const nb=parseInt(document.getElementById('mvt-nbcaisses')?.value)||0, bc=parseInt(document.getElementById('mvt-boitescaisse')?.value)||0, t=nb*bc; const e=document.getElementById('mvt-total-bombes'); if(e) e.textContent=t>0?t.toLocaleString()+' bombes':'—'; }
+function calcMvtVrac()  { const nb=parseInt(document.getElementById('mvt-nbcaisses')?.value)||0, u=parseInt(document.getElementById('mvt-boitescaisse')?.value)||0, kg=parseFloat(document.getElementById('mvt-cartboite')?.value)||0; const t=nb*u*kg; const e=document.getElementById('mvt-total-vrac'); if(e) e.textContent=t>0?t.toLocaleString()+' kg':'—'; }
+
+/* =================================================================
+   SCAN DPM / QR CODE — SIMULATIONS TERRAIN
+   ================================================================= */
+
+// Données de simulation — armes disponibles pour scan DPM
+const scanDataG10 = [
+  {cs:'CS-BF-10-2022-0001',cl:'1010',type:"Fusil d'assaut",soustype:'Automatique',modele:'AK-103',calibre:'7,62x39 mm',desig:"Fusil d'assaut",unite:'Dépôt central'},
+  {cs:'CS-BF-10-2023-0015',cl:'1015',type:'Mitrailleuse légère',soustype:'Automatique',modele:'PKM (PK)',calibre:'7,62x54R mm',desig:'Mitrailleuse légère',unite:'Sector Sahel'},
+  {cs:'CS-BF-10-2024-0128',cl:'1005',type:'Pistolet',soustype:'Service',modele:'Glock 17 Gen 5',calibre:'9x19 mm Parabellum',desig:'Pistolet',unite:'GFS'},
+  {cs:'CS-BF-10-2021-0043',cl:'1030',type:'Lance-roquettes',soustype:'Antichar',modele:'RPG-7',calibre:'PG-7V (85 mm)',desig:'Lance-roquettes',unite:'GFS'},
+  {cs:'CS-BF-10-2022-0007',cl:'1010',type:'Fusil de précision',soustype:'Sniper',modele:'SVD Dragunov',calibre:'7,62x54R mm',desig:'Fusil de précision',unite:'GFS'},
+  {cs:'CS-BF-10-2023-0199',cl:'1010',type:"Fusil d'assaut",soustype:'Moderne',modele:'FAMAS F1',calibre:'5,56x45 mm',desig:"Fusil d'assaut",unite:'GFS'},
+];
+
+// Données de simulation — lots munitions pour scan QR
+const scanDataG13 = [
+  {lot:'LOT-RUS-2024-0001',cl:'1305',desig:'Munitions 7,62x39mm BO',typeballe:'BO — Balle Ordinaire',calibre:'7,62x39 mm',typecaisse:'Caisse bois réglementaire',origine:'Import Russie',nbcaisses:50,boitescaisse:20,cartboite:15,unite:'Dépôt central'},
+  {lot:'LOT-RUS-2024-0002',cl:'1305',desig:'Munitions 7,62x39mm BT',typeballe:'BT — Balle Traçante',calibre:'7,62x39 mm',typecaisse:'Caisse bois réglementaire',origine:'Import Russie',nbcaisses:14,boitescaisse:20,cartboite:15,unite:'Dépôt central'},
+  {lot:'LOT-RUS-2024-0003',cl:'1305',desig:'Munitions 7,62x54R BO',typeballe:'BO — Balle Ordinaire',calibre:'7,62x54R mm',typecaisse:'Caisse métal étanche',origine:'Import Russie',nbcaisses:15,boitescaisse:15,cartboite:20,unite:'Sector Sahel'},
+  {lot:'LOT-RUS-2023-0015',cl:'1320',desig:'Charges RPG-7 HEAT',typeballe:'HEAT — Antichar',calibre:'PG-7 / 85mm',typecaisse:'Caisse bois réglementaire',origine:'Import Russie',nbcaisses:2,boitescaisse:4,cartboite:1,unite:'GFS'},
+];
+
+// Données scan autres groupes
+const scanDataAutres = {
+  '84':[{code:'84-8415-BF001',desig:'Gilets pare-balles NIJ III',cl:'8415',unite:'VDP Kaya'},{code:'84-8415-BF002',desig:'Casques balistiques M88',cl:'8415',unite:'3e Bataillon'}],
+  '23':[{code:'23-2310-BF001',desig:'Toyota HZJ78 Pick-up',cl:'2310',unite:'Sector Sahel'},{code:'23-2350-BF001',desig:'Camion Ural 4320',cl:'2350',unite:'Dépôt central'}],
+  '89':[{code:'89-8905-BF001',desig:'Rations alimentaires (carton)',cl:'8905',unite:'Dépôt central'}],
+  '65':[{code:'65-6545-BF001',desig:'Kit médical de campagne',cl:'6545',unite:'CMA'},{code:'65-6505-BF001',desig:'Morphine (boîte)',cl:'6505',unite:'CMA'}],
+  '91':[{code:'91-9110-BF001',desig:'Carburant F-54 (litre)',cl:'9110',unite:'Dépôt central'}],
+  '58':[{code:'58-5820-BF001',desig:'Radio portative VHF',cl:'5820',unite:'3e Bataillon'}],
+};
+
+function selMvtScanMode(grpKey, mode) {
+  if (grpKey === 'g10') {
+    const scan   = document.getElementById('mvt-g10-scan-zone');
+    const fields = document.getElementById('mvt-g10-fields');
+    const modeS  = document.getElementById('mvt-g10-mode-scan');
+    const modeM  = document.getElementById('mvt-g10-mode-manuel');
+    if (!scan || !fields) return;
+    if (mode === 'scan') {
+      scan.style.display='block'; fields.style.display='none';
+      if(modeS){modeS.style.border='2px solid #185FA5';modeS.style.background='#E6F1FB';}
+      if(modeM){modeM.style.border='1px solid #ddd';modeM.style.background='#fff';}
+    } else {
+      scan.style.display='none'; fields.style.display='block';
+      if(modeM){modeM.style.border='2px solid #3B6D11';modeM.style.background='#EAF3DE';}
+      if(modeS){modeS.style.border='1px solid #ddd';modeS.style.background='#fff';}
+    }
+  } else if (grpKey === 'g13') {
+    const scan   = document.getElementById('mvt-g13-scan-zone');
+    const fields = document.getElementById('mvt-g13-fields');
+    const modeS  = document.getElementById('mvt-g13-mode-scan');
+    const modeM  = document.getElementById('mvt-g13-mode-manuel');
+    if (!scan || !fields) return;
+    if (mode === 'scan') {
+      scan.style.display='block'; fields.style.display='none';
+      if(modeS){modeS.style.border='2px solid #A32D2D';}
+      if(modeM){modeM.style.border='1px solid #ddd';modeM.style.background='#fff';}
+    } else {
+      scan.style.display='none'; fields.style.display='block';
+      if(modeM){modeM.style.border='2px solid #3B6D11';modeM.style.background='#EAF3DE';}
+      if(modeS){modeS.style.border='1px solid #ddd';}
+    }
+  } else if (grpKey === 'std') {
+    const scan   = document.getElementById('mvt-std-scan-zone');
+    if (!scan) return;
+    scan.style.display = mode==='scan' ? 'block':'none';
+  }
+}
+
+function simulerScanDPM_G10() {
+  const data = scanDataG10[Math.floor(Math.random()*scanDataG10.length)];
+  // Animer le scan
+  const resultEl = document.getElementById('mvt-g10-scan-result');
+  if (!resultEl) return;
+  resultEl.style.display='none';
+  // Simuler délai de lecture
+  setTimeout(() => {
+    resultEl.style.display='block';
+    resultEl.innerHTML = `✅ <strong>Data Matrix lu avec succès</strong> — Fiabilité 99,9%<br>Code Suivi : <strong style="font-family:monospace;color:#1D9E75;">${data.cs}</strong><br>Arme identifiée : ${data.desig} · ${data.modele} · ${data.calibre} · ${data.unite}<br><br><button class="btn-p" onclick="confirmerScanDPM_G10(${JSON.stringify(data).replace(/"/g,'&quot;')})">✓ Confirmer et charger les champs</button>`;
+  }, 600);
+}
+
+function confirmerScanDPM_G10(data) {
+  // Afficher les champs et les préremplir
+  const scan   = document.getElementById('mvt-g10-scan-zone');
+  const fields = document.getElementById('mvt-g10-fields');
+  if (!scan || !fields) return;
+  scan.style.display='none'; fields.style.display='block';
+
+  // Remplir Code Suivi
+  const csEl = document.getElementById('mvt-codesv');
+  if (csEl) csEl.value = data.cs;
+
+  // Remplir Classe NSC et déclencher mise à jour des listes
+  const clEl = document.getElementById('mvt-cl-10');
+  if (clEl) { clEl.value = data.cl; updateMvtG10Champs(); }
+
+  // Attendre que les selects soient peuplés puis sélectionner
+  setTimeout(() => {
+    const desEl = document.getElementById('mvt-g10-desig'); if(desEl) {for(let o of desEl.options){if(o.value===data.desig||o.text===data.desig){desEl.value=o.value;break;}}}
+    const tyEl  = document.getElementById('mvt-g10-type');  if(tyEl)  {for(let o of tyEl.options){if(o.text===data.type){tyEl.value=o.value;break;}}}
+    const stEl  = document.getElementById('mvt-g10-soustype');if(stEl){for(let o of stEl.options){if(o.text===data.soustype){stEl.value=o.value;break;}}}
+    const moEl  = document.getElementById('mvt-g10-modele'); if(moEl) {for(let o of moEl.options){if(o.text===data.modele){moEl.value=o.value;break;}}}
+    const caEl  = document.getElementById('mvt-g10-calibre');if(caEl) {for(let o of caEl.options){if(o.text===data.calibre){caEl.value=o.value;break;}}}
+    const unEl  = document.getElementById('mvt-g10-unite-src');if(unEl) unEl.value = data.unite + ' (unité détentrice actuelle)';
+  }, 50);
+}
+
+function simulerScanQR_G13() {
+  const data = scanDataG13[Math.floor(Math.random()*scanDataG13.length)];
+  const resultEl = document.getElementById('mvt-g13-scan-result');
+  if (!resultEl) return;
+  resultEl.style.display='none';
+  setTimeout(() => {
+    resultEl.style.display='block';
+    const parc = data.boitescaisse * data.cartboite;
+    const tot  = data.nbcaisses * parc;
+    resultEl.innerHTML = `✅ <strong>QR code lu avec succès</strong> — Lot identifié<br>N° de lot : <strong style="font-family:monospace;color:#A32D2D;">${data.lot}</strong><br>Classe ${data.cl} — ${data.desig} — Calibre : ${data.calibre}<br>Conditionnement : ${data.nbcaisses} caisses × ${data.boitescaisse} boîtes × ${data.cartboite} cart. = <strong>${tot.toLocaleString()} cartouches</strong><br><br><button class="btn-p" style="background:#A32D2D;" onclick="confirmerScanQR_G13(${JSON.stringify(data).replace(/"/g,'&quot;')})">✓ Confirmer et charger les champs</button>`;
+  }, 600);
+}
+
+function confirmerScanQR_G13(data) {
+  const scan   = document.getElementById('mvt-g13-scan-zone');
+  const fields = document.getElementById('mvt-g13-fields');
+  if (!scan || !fields) return;
+  scan.style.display='none'; fields.style.display='block';
+
+  // Sélectionner la classe et déclencher le formulaire dynamique
+  const clEl = document.getElementById('mvt-cl-13');
+  if (clEl) { clEl.value = data.cl; updateMvtG13Form(); }
+
+  // Remplir les champs après génération du formulaire
+  setTimeout(() => {
+    const lotEl = document.getElementById('mvt-lot'); if(lotEl) lotEl.value = data.lot;
+    // Désignation
+    const desEl = document.getElementById('mvt-g13-dynamic') ? document.querySelector('#mvt-g13-dynamic select') : null;
+    // Remplir champs conditionnement si présents
+    const nbEl = document.getElementById('mvt-nbcaisses'); if(nbEl) nbEl.value = data.nbcaisses;
+    const bcEl = document.getElementById('mvt-boitescaisse'); if(bcEl) bcEl.value = data.boitescaisse;
+    const cbEl = document.getElementById('mvt-cartboite'); if(cbEl) cbEl.value = data.cartboite;
+    // Déclencher calculs
+    if(nbEl) calcMvtMun();
+  }, 100);
+}
+
+function simulerScanStd(grp) {
+  const datas = scanDataAutres[grp] || [];
+  if (!datas.length) return;
+  const data = datas[Math.floor(Math.random()*datas.length)];
+  const resultEl = document.getElementById('mvt-std-scan-result');
+  if (!resultEl) return;
+  resultEl.style.display='none';
+  setTimeout(() => {
+    resultEl.style.display='block';
+    resultEl.innerHTML = `✅ <strong>Code lu avec succès</strong><br>Référence : <strong style="font-family:monospace;">${data.code}</strong><br>${data.desig} — Classe ${data.cl} — ${data.unite}<br><br><button class="btn-p" onclick="confirmerScanStd(${JSON.stringify(data).replace(/"/g,'&quot;')})">✓ Charger les champs</button>`;
+  }, 600);
+}
+
+function confirmerScanStd(data) {
+  const clEl  = document.getElementById('mvt-cl-std');  if(clEl) clEl.value = data.cl;
+  const artEl = document.getElementById('mvt-art-std'); if(artEl) artEl.value = data.desig;
+  const scanZ = document.getElementById('mvt-std-scan-zone'); if(scanZ) scanZ.style.display='none';
+}
+
+function submitMvt() {
+  const doc = document.getElementById('mvt-doc').value.trim();
+  if (!doc) { alert('Réf. document obligatoire.'); return; }
+  if (!mvtType) { alert('Sélectionner un type de mouvement.'); return; }
+  mvtCnt++;
+  const ref = '#MV-2604-0' + mvtCnt;
+  const el = document.getElementById('mvt-suc'); el.style.display='block';
+  el.innerHTML = 'Mouvement enregistré. Référence : <strong>' + ref + '</strong> · ' + mvtType + ' · Groupe G' + mvtGrp + '. Bon disponible à l\'impression.';
+  setTimeout(() => { el.style.display='none'; }, 6000);
+  renderMvtHist();
+}
+function resetMvt() {
+  mvtType = '';
+  document.querySelectorAll('.mvt-type-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('mvt-type-badge').style.display='none';
+  document.getElementById('mvt-grp-lbl').textContent = 'Sélectionner un groupe et un type ci-dessus';
+  document.getElementById('mvt-form-extra').innerHTML = '';
+  ['mvt-doc','mvt-resp','mvt-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+}
+function toggleMvtImport() { const z=document.getElementById('mvt-import-zone'); z.style.display=z.style.display==='none'?'block':'none'; }
+function simulerMvtImport() {
+  document.getElementById('mvt-imp-preview').style.display='block';
+  document.getElementById('mvt-imp-tbody').innerHTML = `
+    <tr><td>Fusil AK-103</td><td><span class="badge b-dn">Sortie</span></td><td>Dépôt central</td><td>3e Bataillon</td><td><span class="badge b-ok">Valide</span></td></tr>
+    <tr><td>Mun. 7,62x39mm</td><td><span class="badge b-ok">Entrée</span></td><td>Fournisseur</td><td>Dépôt central</td><td><span class="badge b-ok">Valide</span></td></tr>
+    <tr><td>Inconnu</td><td><span class="badge b-warn">—</span></td><td>—</td><td>—</td><td><span class="badge b-warn">À corriger</span></td></tr>`;
+}
+function validerMvtImport() {
+  const doc=document.getElementById('mvt-imp-doc').value.trim();
+  if(!doc){alert('Référence document obligatoire.');return;}
+  const el=document.getElementById('mvt-imp-suc');el.style.display='block';
+  el.innerHTML='2 mouvements importés. Référence : <strong>'+doc+'</strong>. 1 ligne rejetée.';
+  setTimeout(()=>{el.style.display='none';},6000);
+}
+
+/* =================================================================
+   HISTORIQUE MOUVEMENTS
+   ================================================================= */
+function filterMvtHist() {
+  const g=document.getElementById('mvt-f-grp').value;
+  const t=document.getElementById('mvt-f-type').value;
+  const u=document.getElementById('mvt-f-unit').value;
+  const s=document.getElementById('mvt-f-st').value;
+  mvtFiltered=mvtHist.filter(m=>(!g||m.grp===g)&&(!t||m.type===t)&&(!u||m.orig.includes(u)||m.dest.includes(u))&&(!s||m.st===s));
+  renderMvtHist();
+  document.getElementById('mvt-chk-all').checked=false;
+  updateMvtSel();
+}
+function resetMvtHist() {
+  ['mvt-f-grp','mvt-f-type','mvt-f-unit','mvt-f-st'].forEach(id=>{document.getElementById(id).value='';});
+  mvtFiltered=[...mvtHist];
+  renderMvtHist();
+}
+function renderMvtHist() {
+  document.getElementById('mvt-hist-cnt').textContent = mvtFiltered.length;
+  // Déterminer quels groupes sont présents dans les données filtrées
+  const hasG10 = mvtFiltered.some(m=>m.grp==='10');
+  const hasG13 = mvtFiltered.some(m=>m.grp==='13');
+  const hasQty = mvtFiltered.some(m=>m.grp!=='10' && m.qty);
+  // Afficher/masquer colonnes selon les données
+  document.querySelectorAll('.mvt-col-g10').forEach(c=>{c.style.display=hasG10?'table-cell':'none';});
+  document.querySelectorAll('.mvt-col-g13').forEach(c=>{c.style.display=hasG13?'table-cell':'none';});
+  document.querySelectorAll('.mvt-col-qty').forEach(c=>{c.style.display=hasQty?'table-cell':'none';});
+
+  document.getElementById('mvt-hist-tbody').innerHTML = mvtFiltered.map((m,i)=>{
+    const gc = grpCfg[m.grp]?.color||'#555';
+    const stBadge   = m.st==='Validé'?'b-ok':m.st==='En cours'?'b-warn':'b-gray';
+    const typeBadge = m.type==='Entrée'?'b-ok':m.type==='Sortie'?'b-dn':'b-info';
+    const qtyDisp   = m.qty ? m.qty.toLocaleString() : '—';
+    return`<tr>
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="mvt-cb" onchange="updateMvtSel()" value="${i}"></td>
+      <td style="font-family:monospace;font-size:10px;">${m.ref}</td>
+      <td style="font-size:10px;">${m.date}</td>
+      <td><span class="badge b-gray" style="font-size:9px;background:${gc}22;color:${gc};">G${m.grp}</span></td>
+      <td><span class="badge ${typeBadge}" style="font-size:9px;">${m.type}</span></td>
+      <td style="font-size:11px;">${m.desig}</td>
+      <td class="mvt-col-g10" style="font-family:monospace;font-size:9px;color:#1D9E75;">${m.codesv||'—'}</td>
+      <td class="mvt-col-g10" style="font-size:10px;">${m.cl||'—'}</td>
+      <td class="mvt-col-g10" style="font-size:10px;font-weight:500;">${m.modele||'—'}</td>
+      <td class="mvt-col-g10" style="font-size:10px;">${m.calibre||'—'}</td>
+      <td class="mvt-col-qty" style="font-size:10px;font-weight:500;">${qtyDisp}</td>
+      <td class="mvt-col-g13" style="font-size:10px;">${m.calibre||'—'}</td>
+      <td class="mvt-col-g13" style="font-size:10px;">${m.typeballe||'—'}</td>
+      <td class="mvt-col-g13" style="font-size:10px;">${m.typecaisse||'—'}</td>
+      <td class="mvt-col-g13" style="font-size:10px;">${m.origine||'—'}</td>
+      <td class="mvt-col-g13" style="font-size:10px;font-weight:500;">${m.nbcaisses||'—'}</td>
+      <td class="mvt-col-g13" style="font-size:10px;">${m.boitescaisse||'—'}</td>
+      <td class="mvt-col-g13" style="font-size:10px;">${m.cartboite||'—'}</td>
+      <td class="mvt-col-g13" style="font-size:10px;font-weight:600;">${m.totcaisse?m.totcaisse.toLocaleString():'—'}</td>
+      <td class="mvt-col-g13" style="font-size:10px;font-weight:700;color:#A32D2D;">${m.totcart?m.totcart.toLocaleString():'—'}</td>
+      <td style="font-size:10px;">${m.orig}</td>
+      <td style="font-size:10px;">${m.dest}</td>
+      <td><span class="badge ${stBadge}" style="font-size:9px;">${m.st}</span></td>
+    </tr>`;
+  }).join('');
+}
+function toggleAllMvt(cb) { document.querySelectorAll('.mvt-cb').forEach(c=>{c.checked=cb.checked;}); updateMvtSel(); }
+function updateMvtSel() {
+  const sel=document.querySelectorAll('.mvt-cb:checked').length;
+  const bar=document.getElementById('mvt-lot-bar');
+  bar.classList.toggle('hidden',sel===0);
+  if(sel>0) document.getElementById('mvt-lot-lbl').textContent=sel+' sélectionné(s)';
+}
+function imprimerSelMvt() {
+  const sel=document.querySelectorAll('.mvt-cb:checked').length;
+  if(sel===0){alert('Sélectionner au moins un mouvement.');return;}
+  alert(sel+' bon(s) de mouvement envoyé(s) à l\'impression.');
+}
+
+/* =================================================================
+   TABLEAU DE BORD — FILTRAGE ACTIF
+   ================================================================= */
+let dispChart = null;
+function renderTB() {
+  const grp    = document.getElementById('tb-grp').value;
+  const unit   = document.getElementById('tb-unit').value;
+  const statut = document.getElementById('tb-statut').value;
+
+  // Filtrer les stocks selon les critères
+  const filtered = stocks.filter(s =>
+    (!grp || s.grp===grp) &&
+    (!unit || (s.unite||'').includes(unit)) &&
+    (!statut || s.st===statut)
+  );
+
+  // Filtrer les mouvements selon la période et le groupe
+  const mvtFilt = mvtHist.filter(m => (!grp || m.grp===grp) && (!unit || m.orig.includes(unit)||m.dest.includes(unit)));
+
+  // Métriques dynamiques
+  document.getElementById('tb-total').textContent   = filtered.length.toLocaleString();
+  document.getElementById('tb-rupt').textContent    = filtered.filter(s=>s.st==='danger').length;
+  document.getElementById('tb-faible').textContent  = filtered.filter(s=>s.st==='warn').length;
+  document.getElementById('tb-mvt-cnt').textContent = mvtFilt.length;
+
+  // Label chart
+  document.getElementById('tb-chart-lbl').textContent = grp ? ('G'+grp+' '+(grpCfg[grp]?.lbl||'')) : 'Tous groupes';
+
+  // Alertes
+  const alertes = filtered.filter(s=>s.st!=='ok');
+  document.getElementById('tb-alertes').innerHTML = alertes.length === 0
+    ? '<div style="color:#3B6D11;font-size:11px;padding:8px 0;">Aucune alerte active pour les filtres sélectionnés.</div>'
+    : alertes.map(s=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e0e0d8;font-size:11px;">
+          <div>
+            <span class="badge ${s.st==='danger'?'b-dn':'b-warn'}" style="font-size:9px;">${s.st==='danger'?'Critique':'Faible'}</span>
+            <span style="margin-left:6px;">${s.name}</span>
+          </div>
+          <span style="color:#888;font-size:10px;">${s.qty.toLocaleString()} / ${s.seuil}</span>
+        </div>`).join('');
+
+  // Graphique disponibilité — recalcul selon le filtre
+  const grpList = grp ? [grp] : Object.keys(grpCfg);
+  const labels=[], data=[], bgs=[];
+  grpList.forEach(g => {
+    const grpStocks = stocks.filter(s=>s.grp===g && (!unit||(s.unite||'').includes(unit)));
+    if (!grpStocks.length) return;
+    const ok = grpStocks.filter(s=>s.st==='ok').length;
+    const pct = Math.round(ok/grpStocks.length*100);
+    labels.push('G'+g);
+    data.push(pct);
+    bgs.push(grpCfg[g]?.color||'#555');
+  });
+
+  if (dispChart) { dispChart.destroy(); dispChart=null; }
+  const ctx = document.getElementById('dispChart');
+  if (ctx && labels.length > 0) {
+    dispChart = new Chart(ctx, {
+      type:'bar',
+      data:{labels,datasets:[{label:'Disponibilité (%)',data,backgroundColor:bgs,borderRadius:4,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:9}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}
+    });
+  }
+
+  // Derniers mouvements filtrés
+  document.getElementById('tb-mvt-tbody').innerHTML = mvtFilt.slice(0,5).map(m=>{
+    const gc=grpCfg[m.grp]?.color||'#555';
+    const typeBadge=m.type==='Entrée'?'b-ok':m.type==='Sortie'?'b-dn':'b-info';
+    const stBadge=m.st==='Validé'?'b-ok':m.st==='En cours'?'b-warn':'b-gray';
+    return`<tr>
+      <td style="font-family:monospace;font-size:10px;">${m.ref}</td>
+      <td style="font-size:10px;">${m.date}</td>
+      <td><span class="badge b-gray" style="font-size:9px;background:${gc}22;color:${gc};">G${m.grp}</span></td>
+      <td><span class="badge ${typeBadge}" style="font-size:9px;">${m.type}</span></td>
+      <td>${m.desig}</td>
+      <td style="font-size:10px;">${m.orig}</td>
+      <td style="font-size:10px;">${m.dest}</td>
+      <td><span class="badge ${stBadge}" style="font-size:9px;">${m.st}</span></td>
+    </tr>`;
+  }).join('');
+}
+function resetTB() {
+  ['tb-grp','tb-unit','tb-statut'].forEach(id=>{document.getElementById(id).value='';});
+  renderTB();
+}
+
+/* =================================================================
+   DOTATIONS
+   ================================================================= */
+function renderDot() {
+  const grp  = document.getElementById('d-grp').value;
+  const unit = document.getElementById('d-unit').value;
+  const taux = document.getElementById('d-taux').value;
+  let filtered = dotData.filter(d => (!unit || d.u.includes(unit)));
+  if (taux==='ok')   filtered = filtered.filter(d=>d.taux>=80);
+  if (taux==='warn') filtered = filtered.filter(d=>d.taux>=60 && d.taux<80);
+  if (taux==='dn')   filtered = filtered.filter(d=>d.taux<60);
+
+  const items = grp === '10' ? [{lbl:'Armement (G10)',key:'arm'}]
+    : grp === '13' ? [{lbl:'Munitions (G13)',key:'arm'}]
+    : grp === '84' ? [{lbl:'Protection (G84)',key:'pro'}]
+    : grp === '23' ? [{lbl:'Véhicules (G23)',key:'veh'}]
+    : grp === '89' ? [{lbl:'Vivres (G89)',key:'viv'}]
+    : grp === '65' ? [{lbl:'Médical (G65)',key:'med'}]
+    : grp === '91' ? [{lbl:'Carburants (G91)',key:'carb'}]
+    : [{lbl:'Armement (G10)',key:'arm'},{lbl:'Protection (G84)',key:'pro'},{lbl:'Véhicules (G23)',key:'veh'},{lbl:'Vivres (G89)',key:'viv'},{lbl:'Médical (G65)',key:'med'},{lbl:'Carburants (G91)',key:'carb'}];
+
+  // Calculer les quantités réelles par unité depuis les stocks
+  const qtesParUnite = {};
+  stocks.forEach(s => {
+    if (!qtesParUnite[s.unite]) qtesParUnite[s.unite] = {};
+    if (!qtesParUnite[s.unite][s.grp]) qtesParUnite[s.unite][s.grp] = 0;
+    qtesParUnite[s.unite][s.grp] += s.qty || 0;
+  });
+
+  // Mapping groupe → clé
+  const grpQteKey = {'10':'arm','84':'pro','23':'veh','89':'viv','65':'med','91':'carb'};
+
+  document.getElementById('dot-cards').innerHTML = filtered.map(d => {
+    const qtes = qtesParUnite[d.u] || {};
+    return `
+    <div class="dot-card">
+      <h4>${d.u} <span style="font-weight:400;color:#888;font-size:10px;">(${d.eff} pers.)</span>
+        <span class="badge ${d.taux>=80?'b-ok':d.taux>=60?'b-warn':'b-dn'}" style="font-size:9px;margin-left:6px;">${d.taux}% global</span>
+      </h4>
+      ${items.map(it=>{
+        const v=d[it.key];
+        const c=v>=80?'#1D9E75':v>=60?'#EF9F27':'#E24B4A';
+        // Trouver le groupe correspondant à cet item
+        const grpKey = Object.entries(grpQteKey).find(([g,k])=>k===it.key)?.[0];
+        const qty = grpKey ? (qtes[grpKey]||0) : 0;
+        const qtyLabel = qty > 0 ? ` <span style="font-size:10px;color:#888;font-weight:400;">(${qty.toLocaleString()} unités)</span>` : '';
+        return`<div class="dot-row">
+          <span style="color:#888;">${it.lbl}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="color:${c};font-weight:600;">${v>0?v+'%':'N/A'}</span>
+            ${qty>0?`<span style="font-size:10px;color:#888;border-left:1px solid #e0e0d8;padding-left:6px;">${qty.toLocaleString()} unités</span>`:''}
+          </div>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${v}%;background:${c};"></div></div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+function resetDot() {
+  ['d-grp','d-unit','d-taux'].forEach(id=>{document.getElementById(id).value='';});
+  renderDot();
+}
+function afficherApercuDot() {
+  const unit = document.getElementById('d-unit').value;
+  if (!unit) { alert('Sélectionner une unité pour l\'aperçu de dotation.'); return; }
+  const d = dotData.find(x=>x.u.includes(unit));
+  if (!d) { alert('Unité non trouvée.'); return; }
+  alert(`Aperçu dotation — ${d.u}\n\nEffectif : ${d.eff} pers.\nTaux global : ${d.taux}%\n\nArmement : ${d.arm}%\nProtection : ${d.pro}%\nVéhicules : ${d.veh}%\nVivres : ${d.viv}%\nMédical : ${d.med}%\nCarburants : ${d.carb}%`);
+}
+
+/* =================================================================
+   RAPPORTS
+   ================================================================= */
+function fakeRap(btn, filename) {
+  const orig = btn.textContent;
+  btn.textContent='Génération en cours...'; btn.disabled=true;
+  setTimeout(()=>{btn.textContent='✓ '+filename+' — Prêt'; btn.disabled=false;},1500);
+}
+
+/* =================================================================
+   MANUEL & AGENT IA
+   ================================================================= */
+function toggleManuel() { document.getElementById('modal-manuel').classList.toggle('visible'); }
+function toggleIA()     { document.getElementById('ia-panel').classList.toggle('visible'); }
+
+async function sendIA() {
+  const inp=document.getElementById('ia-inp');
+  const q=inp.value.trim(); if(!q) return;
+  inp.value='';
+  addIAMsg(q,'user');
+  addIAMsg('…','bot');
+  try {
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'Tu es l\'assistant du logiciel SIGLOF v5 (Système Intégré de Gestion Logistique et Opérationnelle des Forces du Burkina Faso). Réponds en français, de façon concise et professionnelle. Les groupes NSC principaux sont G10 (Armes), G13 (Munitions avec 12 classes dont 1305-1376), G23 (Véhicules), G84 (Équipement), G89 (Vivres), G65 (Médical), G91 (Carburants), G58 (Communications). Le tableau de bord a un filtrage actif. Les stocks G10 se filtrent par Type, Modèle, Calibre. Les stocks G13 se filtrent par Calibre, Type de balle, Type de caisse, Origine. Pour les mouvements G10, la quantité n\'est plus saisie — la traçabilité est individuelle par Code Suivi. Les mouvements G13 ont le même format que l\'enregistrement SSAM-BF.',messages:[{role:'user',content:q}]})});
+    const data=await resp.json();
+    const txt=data.content?.[0]?.text||findIARep(q);
+    removeLastMsg(); addIAMsg(txt,'bot');
+  } catch(e) { removeLastMsg(); addIAMsg(findIARep(q),'bot'); }
+}
+function findIARep(q) {
+  const ql=q.toLowerCase();
+  if(ql.includes('mouvement')&&ql.includes('g10')) return 'Pour un mouvement G10 (Armes) : sélectionner G10 sur la grille, puis choisir la classe NSC. La Désignation, le Type, le Sous-type, le Modèle et le Calibre se chargent automatiquement. La quantité n\'est plus saisie — saisir le Code Suivi individuel de l\'arme.';
+  if(ql.includes('g13')&&ql.includes('stock')) return 'Les stocks G13 affichent les colonnes : Type, Calibre, Type de balle, Type de caisse, Origine, Nb caisses, Boîtes/caisse, Cartouches/boîte, Total/caisse, Total cartouches. Filtrer par calibre, type de balle ou type de caisse via la barre de filtres.';
+  if(ql.includes('tableau de bord')) return 'Le tableau de bord filtre sur la période, le groupe NSC, l\'unité et le statut. Les indicateurs (total articles, ruptures, stock faible, mouvements) et le graphique se recalculent automatiquement.';
+  return 'Je peux vous aider sur : le tableau de bord (filtrage actif), les stocks G10 (filtres par Type/Modèle/Calibre) et G13 (filtres exhaustifs + colonnes conditionnement), les mouvements G10 (traçabilité individuelle) et G13 (formats par classe).';
+}
+function askIA(q) { document.getElementById('ia-inp').value=q; sendIA(); }
+function addIAMsg(txt,cls) { const m=document.getElementById('ia-msgs'); const d=document.createElement('div'); d.className='ia-msg '+cls; d.textContent=txt; m.appendChild(d); m.scrollTop=m.scrollHeight; }
+function removeLastMsg() { const m=document.getElementById('ia-msgs'); if(m.lastChild) m.removeChild(m.lastChild); }
+function updateMvtLbl() {}
+
+/* =================================================================
+   INIT
+   ================================================================= */
+// Tableau de bord
+renderTB();
+
+// Stocks — grille et tableau initiaux (tous groupes)
+renderStocksGrpGrid();
+const thead0 = document.getElementById('st-thead-row');
+thead0.innerHTML = `<th style="width:32px;"><input type="checkbox" onchange="toggleStSel(this)"></th><th>N°</th><th>Code NSN</th><th>Groupe</th><th>Classe</th><th>Désignation</th><th>Unité</th><th>Qté dispo.</th><th>Seuil</th><th>Emplacement</th><th>Statut</th>`;
+document.getElementById('st-cnt').textContent = stocks.length;
+document.getElementById('st-tbody').innerHTML = stocks.map((r,i)=>{
+  const gc=grpCfg[r.grp]?.color||'#555';
+  const sb=r.st==='ok'?'b-ok':r.st==='warn'?'b-warn':'b-dn';
+  const sl=r.st==='ok'?'Normal':r.st==='warn'?'Faible':'Critique';
+  return`<tr><td onclick="event.stopPropagation()"><input type="checkbox" class="st-cb" onchange="updateStSel()"></td><td style="color:#888;font-size:10px;">${i+1}</td><td style="font-family:monospace;font-size:9px;">${r.code}</td><td><span class="badge b-gray" style="background:${gc}22;color:${gc};font-size:9px;">G${r.grp}</span></td><td style="font-size:10px;">${r.cl||'—'}</td><td>${r.name}</td><td style="font-size:10px;">${r.unite||'—'}</td><td style="font-weight:500;">${r.qty.toLocaleString()}</td><td style="color:#888;">${r.seuil}</td><td style="font-size:10px;color:#888;">${r.loc}</td><td><span class="badge ${sb}" style="font-size:9px;">${sl}</span></td></tr>`;
+}).join('');
+
+// Mouvements
+renderMvtGrpGrid();
+renderMvtHist();
+// Initialiser avec G10 sélectionné par défaut
+const _g10btn = document.querySelector('#mvt-grp-grid .g-btn');
+if (_g10btn) selMvtGrp('10', _g10btn);
+
+// Dotations
+renderDot();
+
+// Formulaire ajout classes
+updateAddClasses();
+</script>
+</body>
+</html>
